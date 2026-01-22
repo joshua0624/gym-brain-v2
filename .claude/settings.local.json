@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(node scripts/test-server.js:*)",
+      "Bash(curl:*)",
+      "Bash(node scripts/test-auth.js:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node scripts/test-progress-requests.js:*)",
+      "Bash(taskkill:*)",
+      "Bash(node scripts/test-progress-endpoints.js:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
+    ]
+  }
+}
