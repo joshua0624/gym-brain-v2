@@ -30,7 +30,8 @@ const sql = neon(process.env.DATABASE_URL);
 const migrations = [
   '001_initial_schema.sql',
   '002_seed_exercises.sql',
-  '003_add_is_completed_columns.sql'
+  '003_add_is_completed_columns.sql',
+  '004_add_ai_request_log.sql'
 ];
 
 /**

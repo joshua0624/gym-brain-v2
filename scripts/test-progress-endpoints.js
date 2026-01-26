@@ -86,6 +86,36 @@ async function setupAuthRoutes() {
   console.log('Auth route registered');
 }
 
+// Import AI routes for Phase 8 testing
+async function setupAIRoutes() {
+  console.log('Setting up AI routes...');
+
+  try {
+    const workoutAssistant = await import('../api/ai/workout-assistant.js');
+    console.log('AI module imported:', typeof workoutAssistant.default);
+
+    // Register route directly
+    const aiHandler = async (req, res) => {
+      console.log('[TEST SERVER] AI endpoint hit! Method:', req.method, 'Path:', req.path);
+      try {
+        await workoutAssistant.default(req, res);
+      } catch (error) {
+        console.error('[TEST SERVER] AI endpoint error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      }
+    };
+
+    app.post('/api/ai/workout-assistant', aiHandler);
+
+    console.log('AI route registered successfully');
+  } catch (error) {
+    console.error('Error setting up AI routes:', error.message);
+    throw error;
+  }
+}
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -97,6 +127,7 @@ async function start() {
     console.log('Starting server setup...');
     await setupAuthRoutes();
     await setupProgressRoutes();
+    await setupAIRoutes();
     console.log('All routes setup complete');
 
     // 404 handler - MUST be last
@@ -107,7 +138,7 @@ async function start() {
     app.listen(PORT, () => {
       console.log('');
       console.log('='.repeat(60));
-      console.log('🚀 Progress & PR Test Server Running (Phase 7)');
+      console.log('🚀 Test Server Running (Phases 7-8)');
       console.log('='.repeat(60));
       console.log(`📍 URL: http://localhost:${PORT}`);
       console.log(`🔗 API Base: http://localhost:${PORT}/api`);
@@ -119,11 +150,13 @@ async function start() {
       console.log('  GET  /api/prs?exerciseId=<uuid>');
       console.log('  GET  /api/stats/weekly');
       console.log('  GET  /api/stats/weekly?week=YYYY-MM-DD');
+      console.log('  POST /api/ai/workout-assistant     [NEW - Phase 8]');
       console.log('');
       console.log('Testing workflow:');
       console.log('  1. Login to get JWT token: POST /api/auth/login');
       console.log('  2. Use token in header: Authorization: Bearer <token>');
-      console.log('  3. Test progress endpoints with your token');
+      console.log('  3. Test endpoints with your token');
+      console.log('  4. Run AI tests: node scripts/test-ai-endpoint.js');
       console.log('');
       console.log('Press Ctrl+C to stop');
       console.log('='.repeat(60));

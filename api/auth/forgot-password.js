@@ -3,8 +3,8 @@ import { sql } from '../_lib/db.js';
 import { Resend } from 'resend';
 import { validateEmail } from '../_lib/auth.js';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend client (only if API key is configured)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * POST /api/auth/forgot-password
@@ -82,7 +82,12 @@ export default async function handler(req, res) {
       ? `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
       : `http://localhost:5173/reset-password?token=${resetToken}`;
 
-    // Send email via Resend
+    // Send email via Resend (if configured)
+    if (!resend) {
+      console.error('RESEND_API_KEY not configured - skipping password reset email');
+      return res.status(503).json({ error: 'Email service not configured' });
+    }
+
     try {
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'GymBrAIn <noreply@gymbrain.app>',

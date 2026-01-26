@@ -45,25 +45,88 @@ function wrapHandler(handler) {
   };
 }
 
-// Import and mount auth endpoints
-async function setupAuthRoutes() {
-  console.log('Setting up auth routes...');
+// Import and mount all API endpoints
+async function setupRoutes() {
+  console.log('Setting up API routes...');
 
+  // Auth endpoints
   const register = await import('../api/auth/register.js');
   const login = await import('../api/auth/login.js');
   const refresh = await import('../api/auth/refresh.js');
   const forgotPassword = await import('../api/auth/forgot-password.js');
   const resetPassword = await import('../api/auth/reset-password.js');
 
+  // Exercise endpoints
+  const exercises = await import('../api/exercises.js');
+  const archiveExercise = await import('../api/exercises/[id]/archive.js');
+
+  // Workout endpoints
+  const workouts = await import('../api/workouts.js');
+  const workoutById = await import('../api/workouts/[id].js');
+  const workoutDraft = await import('../api/workouts/draft.js');
+  const workoutSync = await import('../api/workouts/sync.js');
+
+  // Template endpoints
+  const templates = await import('../api/templates.js');
+  const templateById = await import('../api/templates/[id].js');
+  const templateExercises = await import('../api/templates/[id]/exercises.js');
+
+  // Progress/Stats endpoints
+  const progress = await import('../api/progress/[exerciseId].js');
+  const prs = await import('../api/prs.js');
+  const weeklyStats = await import('../api/stats/weekly.js');
+
+  // AI endpoint
+  const aiAssistant = await import('../api/ai/workout-assistant.js');
+
   console.log('Modules imported successfully');
 
+  // Mount auth routes
   app.post('/api/auth/register', wrapHandler(register.default));
   app.post('/api/auth/login', wrapHandler(login.default));
   app.post('/api/auth/refresh', wrapHandler(refresh.default));
   app.post('/api/auth/forgot-password', wrapHandler(forgotPassword.default));
   app.post('/api/auth/reset-password', wrapHandler(resetPassword.default));
 
-  console.log('Routes registered');
+  // Mount exercise routes
+  app.all('/api/exercises', wrapHandler(exercises.default));
+  app.all('/api/exercises/:id/archive', (req, res) => {
+    req.query = { id: req.params.id };
+    wrapHandler(archiveExercise.default)(req, res);
+  });
+
+  // Mount workout routes
+  app.all('/api/workouts', wrapHandler(workouts.default));
+  app.all('/api/workouts/draft', wrapHandler(workoutDraft.default));
+  app.all('/api/workouts/sync', wrapHandler(workoutSync.default));
+  app.all('/api/workouts/:id', (req, res) => {
+    req.query = { id: req.params.id };
+    wrapHandler(workoutById.default)(req, res);
+  });
+
+  // Mount template routes
+  app.all('/api/templates', wrapHandler(templates.default));
+  app.all('/api/templates/:id/exercises', (req, res) => {
+    req.query = { id: req.params.id };
+    wrapHandler(templateExercises.default)(req, res);
+  });
+  app.all('/api/templates/:id', (req, res) => {
+    req.query = { id: req.params.id };
+    wrapHandler(templateById.default)(req, res);
+  });
+
+  // Mount progress/stats routes
+  app.all('/api/progress/:exerciseId', (req, res) => {
+    req.query = { exerciseId: req.params.exerciseId };
+    wrapHandler(progress.default)(req, res);
+  });
+  app.all('/api/prs', wrapHandler(prs.default));
+  app.all('/api/stats/weekly', wrapHandler(weeklyStats.default));
+
+  // Mount AI route
+  app.post('/api/ai/workout-assistant', wrapHandler(aiAssistant.default));
+
+  console.log('All routes registered successfully');
 }
 
 // Health check endpoint
@@ -75,8 +138,8 @@ app.get('/api/health', (req, res) => {
 async function start() {
   try {
     console.log('Starting server setup...');
-    await setupAuthRoutes();
-    console.log('Auth routes setup complete');
+    await setupRoutes();
+    console.log('API routes setup complete');
 
     // 404 handler - MUST be last
     app.use((req, res) => {

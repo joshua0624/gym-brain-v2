@@ -1,16 +1,16 @@
 # GymBrAIn - Project Status
 
-**Last Updated:** January 21, 2026
-**Version:** 1.0.0-alpha (Phase 7 Complete)
+**Last Updated:** January 22, 2026
+**Version:** 1.0.0-alpha (Phase 9 ~90% Complete)
 **Repository:** [gym-brain-v2](https://github.com/joshua0624/gym-brain-v2)
 
 ---
 
 ## 📊 Current State
 
-**Backend:** ✅ **Complete** (Phases 1-7)
-**Frontend:** ⏳ **Not Started** (Phases 8-9)
-**PWA/Offline:** ⏳ **Not Started** (Phase 10)
+**Backend:** ✅ **Complete** (Phases 1-8)
+**Frontend:** ⏳ **90% Complete** (Phase 9 - Workout page pending)
+**PWA/Offline:** ⏳ **Partial** (IndexedDB setup complete, Service Worker pending)
 **Polish:** ⏳ **Not Started** (Phases 11-12)
 
 ---
@@ -114,29 +114,50 @@
 
 ---
 
-### ⏳ Phase 8: AI Workout Assistant (Not Started)
-- [ ] OpenAI GPT-4o-mini integration
-- [ ] POST `/api/ai/workout-assistant` - AI proxy endpoint
-- [ ] Context window management (last 3 sets)
-- [ ] 5-second timeout with fallback
-- [ ] Rate limiting (20/workout, 100/day)
-- [ ] Tentative language enforcement (system prompt)
+### ✅ Phase 8: AI Workout Assistant (Complete)
+- [x] OpenAI GPT-4o-mini integration
+- [x] POST `/api/ai/workout-assistant` - AI proxy endpoint
+- [x] Context window management (last 3 sets, last 3 exchanges)
+- [x] 5-second timeout with fallback
+- [x] Rate limiting (20/workout, 100/day)
+- [x] Tentative language enforcement (system prompt)
+- [x] Request logging to `ai_request_log` table
+- [x] Comprehensive error handling (timeout, auth, OpenAI errors)
+- [x] Test suite with 7 test scenarios
 
-**Target Files:** `api/ai/workout-assistant.js`
+**Key Files:** `api/ai/workout-assistant.js`, `migrations/004_add_ai_request_log.sql`, `migrations/005_fix_ai_request_log_constraint.sql`, `scripts/test-ai-endpoint.js`
+
+**Documentation:** See `PHASE_8_SUMMARY.md`
+
+**Note:** Requires valid `OPENAI_API_KEY` in `.env.local` for actual AI responses. Currently uses placeholder key and returns graceful fallback messages.
 
 ---
 
-### ⏳ Phase 9: Frontend React Implementation (Not Started)
-- [ ] Workout logging page (`/src/pages/Workout.jsx`)
-- [ ] History page (`/src/pages/History.jsx`)
-- [ ] Progress page (`/src/pages/Progress.jsx`)
-- [ ] Exercise library page (`/src/pages/Library.jsx`)
-- [ ] Profile/settings page (`/src/pages/Profile.jsx`)
-- [ ] Core components (RestTimer, SetEntry, AIChatPanel, etc.)
-- [ ] Custom hooks (useNetworkStatus, useIndexedDB, etc.)
-- [ ] Client-side API wrapper (`/src/lib/api.js`)
+### ⏳ Phase 9: Frontend React Implementation (~90% Complete)
+- [x] Client-side API wrapper (`/src/lib/api.js`)
+- [x] Data formatters and validators (`/src/lib/formatters.js`)
+- [x] App constants and configuration (`/src/lib/constants.js`)
+- [x] IndexedDB setup (`/src/lib/indexedDB.js`)
+- [x] Custom hooks (useAuth, useNetworkStatus, useIndexedDB, useDraftAutoSave, useToast)
+- [x] Core components (RestTimer, SetEntry, AIChatPanel, ToastNotification, Layout, PrivateRoute)
+- [x] Login/Register pages (`/src/pages/Login.jsx`, `/src/pages/Register.jsx`)
+- [x] Exercise library page (`/src/pages/Library.jsx`)
+- [x] History page with responsive design (`/src/pages/History.jsx`)
+- [x] Progress page with Recharts (`/src/pages/Progress.jsx`)
+- [x] Profile/settings page (`/src/pages/Profile.jsx`)
+- [x] React Router setup with protected routes
+- [ ] Workout logging page (`/src/pages/Workout.jsx`) - **ONLY REMAINING TASK**
 
-**Blockers:** None - backend is ready
+**Key Files:** All pages in `/src/pages/`, components in `/src/components/`, hooks in `/src/hooks/`, utilities in `/src/lib/`
+
+**Documentation:** See `PHASE_9_SUMMARY.md`
+
+**Known Issues:**
+- Authentication flow needs debugging (pages exist but login not working)
+- Toast notifications exist but not integrated into App.jsx
+- Workout page is placeholder only (most complex component, needs full implementation)
+
+**Blockers:** None - all dependencies ready
 
 ---
 
@@ -244,6 +265,8 @@ node scripts/test-progress-endpoints.js  # Port 3001
 | **GymBrAIn_Specification_v1_2_2_FINAL.md** | Feature requirements (source of truth) |
 | **planchanges.md** | Changelog of fixes and architectural decisions |
 | **PHASE_7_SUMMARY.md** | Phase 7 implementation details |
+| **PHASE_8_SUMMARY.md** | Phase 8 AI assistant implementation details |
+| **PHASE_9_SUMMARY.md** | **Phase 9 frontend implementation (READ THIS FOR NEXT SESSION)** |
 | **STRUCTURAL_FIX_SUMMARY.md** | Backend restructuring documentation |
 | **VERCEL_CLI_SETUP.md** | Vercel CLI configuration guide |
 
@@ -251,23 +274,40 @@ node scripts/test-progress-endpoints.js  # Port 3001
 
 ## 🚀 Next Steps
 
-### Immediate Priorities (Phase 8)
-1. **Decide on AI implementation priority:**
-   - Option A: Build AI assistant now (Phase 8)
-   - Option B: Skip to frontend (Phase 9) and add AI later
+### Immediate Priorities (Phase 9 Completion)
 
-2. **If starting Phase 9 (Frontend):**
-   - Set up React Router
-   - Create `/src/lib/api.js` client wrapper
-   - Build workout logging page first (most complex)
-   - Implement draft auto-save logic
+1. **Debug Authentication Flow** (30 minutes)
+   - Test login/register endpoints
+   - Verify token storage in localStorage
+   - Check CORS and environment variables
+   - Fix any API integration issues
 
-### Recommended Order
-1. Phase 9 (Frontend) - Core value prop
-2. Phase 10 (PWA/Offline) - Differentiator
-3. Phase 8 (AI) - Nice-to-have enhancement
-4. Phase 11 (Export) - Quick win
-5. Phase 12 (Polish) - Pre-launch
+2. **Integrate Toast Notifications** (15 minutes)
+   - Add ToastContainer to App.jsx
+   - Or create Toast context provider
+   - Test across all pages
+
+3. **Implement Workout Page** (4-6 hours - MAIN TASK)
+   - Start workout options (blank/template/resume)
+   - Exercise selection and management
+   - Set logging with SetEntry integration
+   - Previous performance display
+   - Draft auto-save integration
+   - RestTimer integration
+   - AI assistant integration
+   - Workout completion flow with atomic draft deletion
+
+4. **Test End-to-End** (1-2 hours)
+   - Complete user journey testing
+   - Offline scenarios
+   - All CRUD operations
+   - Mobile responsive testing
+
+### After Phase 9
+1. Phase 11 (Export) - Already implemented in Profile page! ✅
+2. Phase 10 (Service Worker) - Complete offline support
+3. Phase 12 (Polish) - UI/UX refinements
+4. Phase 13 (Testing) - Comprehensive test suite
 
 ---
 
@@ -276,11 +316,11 @@ node scripts/test-progress-endpoints.js  # Port 3001
 | Category | Status | Percentage |
 |----------|--------|------------|
 | Database & Schema | ✅ Complete | 100% |
-| Backend APIs | ✅ Complete | 100% (7/7 phases) |
-| Authentication | ✅ Complete | 100% |
-| Frontend | ⏳ Not Started | 0% |
-| PWA/Offline | ⏳ Not Started | 0% |
-| Overall Project | 🟡 In Progress | ~40% |
+| Backend APIs | ✅ Complete | 100% (8/8 phases) |
+| Authentication | ✅ Complete (backend) | 100% (backend), needs frontend debugging |
+| Frontend | ⏳ In Progress | 90% (Workout page pending) |
+| PWA/Offline | ⏳ Partial | 40% (IndexedDB done, Service Worker pending) |
+| Overall Project | 🟡 In Progress | ~75% |
 
 ---
 
@@ -294,8 +334,10 @@ node scripts/test-progress-endpoints.js  # Port 3001
 - ✅ Progress tracking endpoints
 - ✅ PR calculation with Brzycki formula
 - ✅ Weekly stats and volume breakdown
+- ✅ AI workout assistant (with placeholder API key)
+- ✅ Rate limiting (20/workout, 100/day)
 
-**Test Scripts:** `scripts/test-progress-endpoints.js`, `scripts/test-progress-requests.js`
+**Test Scripts:** `scripts/test-progress-endpoints.js`, `scripts/test-progress-requests.js`, `scripts/test-ai-endpoint.js`, `scripts/check-ai-logs.js`
 
 ### Frontend (⏳ Not Applicable)
 No frontend code exists yet.
@@ -312,9 +354,11 @@ End-to-end testing planned for Phase 13.
 - `JWT_SECRET` - Access token signing key
 - `JWT_REFRESH_SECRET` - Refresh token signing key
 
-### Optional (Not Used Yet)
-- `OPENAI_API_KEY` - For Phase 8 (AI assistant)
+### Optional (⚠️ Placeholder)
+- `OPENAI_API_KEY` - Phase 8 AI assistant (placeholder key set, needs real key for production)
 - `RESEND_API_KEY` - For password reset emails (configured but untested)
+
+**Action Needed:** Replace placeholder `OPENAI_API_KEY` with actual key from https://platform.openai.com/api-keys
 
 **Reference:** `.env.example` in repository
 
@@ -323,15 +367,15 @@ End-to-end testing planned for Phase 13.
 ## 🎯 Version Roadmap
 
 ### V1.0 Target Features (Current Build)
-- ✅ Auth with password reset
-- ✅ Exercise library
-- ✅ Workout logging + templates
-- ⏳ History views + progress charts (backend ready)
-- ✅ PR tracking (backend ready)
-- ⏳ AI workout assistant
-- ⏳ Rest timer
-- ⏳ JSON export
-- ⏳ PWA/offline
+- ✅ Auth with password reset (backend complete)
+- ✅ Exercise library (backend complete)
+- ✅ Workout logging + templates (backend complete)
+- ⏳ History views + progress charts (backend ready, frontend pending)
+- ✅ PR tracking (backend complete)
+- ✅ AI workout assistant (backend complete, needs real API key)
+- ⏳ Rest timer (frontend pending)
+- ⏳ JSON export (backend pending)
+- ⏳ PWA/offline (not started)
 
 ### V2.0 Future Features (Out of Scope)
 - AI workout plan designer
@@ -358,6 +402,8 @@ End-to-end testing planned for Phase 13.
 
 ---
 
-**Last Build Date:** January 21, 2026
+**Last Build Date:** January 22, 2026
 **Deployment Status:** Not deployed (local development only)
 **Production URL:** TBD (Vercel deployment pending)
+
+**Phase 9 Status:** Frontend ~90% complete. All pages implemented except Workout page (the most complex component). Backend integration ready, auth needs debugging. See `PHASE_9_SUMMARY.md` for complete handoff documentation.

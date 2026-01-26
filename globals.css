@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light theme colors */
+  --bg: #f5f2ed;
+  --bg-alt: #ebe7e0;
+  --surface: #ffffff;
+  --surface-hover: #fafaf8;
+  --text: #2d2a26;
+  --text-muted: #6b6560;
+  --text-light: #9a948c;
+  --accent: #6b7c3f;
+  --accent-hover: #5a6935;
+  --accent-light: #e8ebdf;
+  --secondary: #8b7355;
+  --secondary-light: #c4b5a5;
+  --border: #d9d4cc;
+  --border-light: #e8e4dc;
+  --success: #5a7c40;
+  --success-bg: #f0f4eb;
+  --success-border: #d4e0c8;
+  --warning: #b8860b;
+  --error: #a65d57;
+}
+
+[data-theme="dark"] {
+  /* Dark warm theme colors */
+  --bg: #1a1816;
+  --bg-alt: #121110;
+  --surface: #252220;
+  --surface-hover: #2e2a27;
+  --text: #e8e4df;
+  --text-muted: #a09a92;
+  --text-light: #6b665f;
+  --accent: #8fa558;
+  --accent-hover: #a3b86c;
+  --accent-light: #2a2e22;
+  --secondary: #c4a77d;
+  --secondary-light: #3d352a;
+  --border: #3a3632;
+  --border-light: #2e2a27;
+  --success: #7a9c5a;
+  --success-bg: #1e2219;
+  --success-border: #3a4a2e;
+  --warning: #d4a84b;
+  --error: #c47a74;
+}
+
+/* Smooth theme transitions */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Prevent transition on theme properties during page load */
+.no-transition * {
+  transition: none !important;
+}
+
+/* Base body styles */
+body {
+  @apply bg-bg text-text font-body antialiased;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-bg-alt;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-text-light;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible styling for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
