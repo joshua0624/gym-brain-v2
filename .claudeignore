@@ -1,0 +1,17 @@
+# 1. Massive generated folders
+node_modules/
+dist/
+build/
+.next/
+coverage/
+.vercel/
+
+# 2. Historical context (Too heavy for auto-reads)
+PHASE_*_SUMMARY.md
+GymBrAIn_Specification_v1_2_2_FINAL.md
+docs/spec.md
+
+# 3. Test artifacts
+tests/
+*.test.js
+*.spec.js

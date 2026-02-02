@@ -45,83 +45,63 @@ function wrapHandler(handler) {
   };
 }
 
-// Import and mount all API endpoints
+// Import and mount all API endpoints (using new catch-all routes)
 async function setupRoutes() {
   console.log('Setting up API routes...');
 
-  // Auth endpoints
-  const register = await import('../api/auth/register.js');
-  const login = await import('../api/auth/login.js');
-  const refresh = await import('../api/auth/refresh.js');
-  const forgotPassword = await import('../api/auth/forgot-password.js');
-  const resetPassword = await import('../api/auth/reset-password.js');
-
-  // Exercise endpoints
-  const exercises = await import('../api/exercises.js');
-  const archiveExercise = await import('../api/exercises/[id]/archive.js');
-
-  // Workout endpoints
-  const workouts = await import('../api/workouts.js');
-  const workoutById = await import('../api/workouts/[id].js');
-  const workoutDraft = await import('../api/workouts/draft.js');
-  const workoutSync = await import('../api/workouts/sync.js');
-
-  // Template endpoints
-  const templates = await import('../api/templates.js');
-  const templateById = await import('../api/templates/[id].js');
-  const templateExercises = await import('../api/templates/[id]/exercises.js');
-
-  // Progress/Stats endpoints
-  const progress = await import('../api/progress/[exerciseId].js');
-  const prs = await import('../api/prs.js');
-  const weeklyStats = await import('../api/stats/weekly.js');
-
-  // AI endpoint
+  // Import catch-all route handlers
+  const authHandler = await import('../api/auth/[[...action]].js');
+  const exercisesHandler = await import('../api/exercises/[[...params]].js');
+  const workoutsHandler = await import('../api/workouts/[[...params]].js');
+  const templatesHandler = await import('../api/templates/[[...params]].js');
+  const statsHandler = await import('../api/stats/[[...params]].js');
   const aiAssistant = await import('../api/ai/workout-assistant.js');
 
   console.log('Modules imported successfully');
 
-  // Mount auth routes
-  app.post('/api/auth/register', wrapHandler(register.default));
-  app.post('/api/auth/login', wrapHandler(login.default));
-  app.post('/api/auth/refresh', wrapHandler(refresh.default));
-  app.post('/api/auth/forgot-password', wrapHandler(forgotPassword.default));
-  app.post('/api/auth/reset-password', wrapHandler(resetPassword.default));
+  // Helper to convert Express params to Next.js query format
+  function catchAllWrapper(handler, paramName) {
+    return (req, res) => {
+      // Extract path segments after the base path
+      const pathAfterBase = req.path.split('/').filter(Boolean).slice(2); // Skip 'api' and base
 
-  // Mount exercise routes
-  app.all('/api/exercises', wrapHandler(exercises.default));
-  app.all('/api/exercises/:id/archive', (req, res) => {
-    req.query = { id: req.params.id };
-    wrapHandler(archiveExercise.default)(req, res);
-  });
+      // Use a Proxy to intercept query property access
+      const wrappedReq = new Proxy(req, {
+        get(target, prop) {
+          if (prop === 'query') {
+            return { ...target.query, [paramName]: pathAfterBase };
+          }
+          return target[prop];
+        }
+      });
 
-  // Mount workout routes
-  app.all('/api/workouts', wrapHandler(workouts.default));
-  app.all('/api/workouts/draft', wrapHandler(workoutDraft.default));
-  app.all('/api/workouts/sync', wrapHandler(workoutSync.default));
-  app.all('/api/workouts/:id', (req, res) => {
-    req.query = { id: req.params.id };
-    wrapHandler(workoutById.default)(req, res);
-  });
+      wrapHandler(handler.default)(wrappedReq, res);
+    };
+  }
 
-  // Mount template routes
-  app.all('/api/templates', wrapHandler(templates.default));
-  app.all('/api/templates/:id/exercises', (req, res) => {
-    req.query = { id: req.params.id };
-    wrapHandler(templateExercises.default)(req, res);
-  });
-  app.all('/api/templates/:id', (req, res) => {
-    req.query = { id: req.params.id };
-    wrapHandler(templateById.default)(req, res);
-  });
+  // Mount auth routes (POST only)
+  app.post('/api/auth/:action', catchAllWrapper(authHandler, 'action'));
 
-  // Mount progress/stats routes
-  app.all('/api/progress/:exerciseId', (req, res) => {
-    req.query = { exerciseId: req.params.exerciseId };
-    wrapHandler(progress.default)(req, res);
-  });
-  app.all('/api/prs', wrapHandler(prs.default));
-  app.all('/api/stats/weekly', wrapHandler(weeklyStats.default));
+  // Mount exercise routes (all methods, catch-all at end)
+  app.all('/api/exercises/:id/archive', catchAllWrapper(exercisesHandler, 'params'));
+  app.all('/api/exercises', catchAllWrapper(exercisesHandler, 'params'));
+
+  // Mount workout routes (all methods)
+  app.all('/api/workouts/draft', catchAllWrapper(workoutsHandler, 'params'));
+  app.all('/api/workouts/sync', catchAllWrapper(workoutsHandler, 'params'));
+  app.all('/api/workouts/:id', catchAllWrapper(workoutsHandler, 'params'));
+  app.all('/api/workouts', catchAllWrapper(workoutsHandler, 'params'));
+
+  // Mount template routes (all methods)
+  app.all('/api/templates/:id/exercises', catchAllWrapper(templatesHandler, 'params'));
+  app.all('/api/templates/:id', catchAllWrapper(templatesHandler, 'params'));
+  app.all('/api/templates', catchAllWrapper(templatesHandler, 'params'));
+
+  // Mount stats routes (GET only)
+  app.get('/api/stats/progress/:exerciseId', catchAllWrapper(statsHandler, 'params'));
+  app.get('/api/stats/prs', catchAllWrapper(statsHandler, 'params'));
+  app.get('/api/stats/weekly', catchAllWrapper(statsHandler, 'params'));
+  app.get('/api/stats/:param', catchAllWrapper(statsHandler, 'params'));
 
   // Mount AI route
   app.post('/api/ai/workout-assistant', wrapHandler(aiAssistant.default));
