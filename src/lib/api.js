@@ -352,7 +352,7 @@ export const progressAPI = {
    * Get exercise progression data
    */
   getExerciseProgress: async (exerciseId) => {
-    const response = await apiClient.get(`/progress/${exerciseId}`);
+    const response = await apiClient.get(`/stats/progress/${exerciseId}`);
     return response.data;
   },
 
@@ -361,7 +361,7 @@ export const progressAPI = {
    */
   getPRs: async (exerciseId = null) => {
     const params = exerciseId ? { exerciseId } : {};
-    const response = await apiClient.get('/prs', { params });
+    const response = await apiClient.get('/stats/prs', { params });
     return response.data;
   },
 

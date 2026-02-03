@@ -336,32 +336,46 @@ const Workout = () => {
     try {
       setLoading(true);
 
-      const completed_at = new Date().toISOString();
+      const completedAt = new Date().toISOString();
       const started = new Date(workout.started_at);
-      const completed = new Date(completed_at);
-      const duration_seconds = Math.floor((completed - started) / 1000);
+      const completed = new Date(completedAt);
+      const durationSeconds = Math.floor((completed - started) / 1000);
 
       // Calculate total volume
-      const total_volume = calculateVolume(workout.exercises);
+      const totalVolume = calculateVolume(workout.exercises);
 
       // Prepare workout data for sync
       const workoutData = {
+        id: workout.id,
         name: workout.name,
-        started_at: workout.started_at,
-        completed_at,
-        duration_seconds,
-        total_volume,
+        startedAt: workout.started_at,
+        completedAt,
+        durationSeconds,
+        totalVolume,
         exercises: workout.exercises.map(ex => ({
-          exercise_id: ex.exercise_id,
-          order_index: ex.order_index,
-          sets: ex.sets,
+          id: ex.id,
+          exerciseId: ex.exercise_id,
+          orderIndex: ex.order_index,
+          isCompleted: ex.is_completed,
+          sets: ex.sets.map(set => ({
+            id: set.id,
+            setNumber: set.set_number,
+            weight: set.weight,
+            reps: set.reps,
+            rir: set.rir,
+            durationSeconds: set.duration_seconds,
+            distance: set.distance,
+            notes: set.notes,
+            isWarmup: set.is_warmup,
+            isCompleted: set.is_completed,
+          })),
         })),
       };
 
       // Sync to server with atomic draft deletion
       await workoutAPI.sync({
-        completed_workouts: [workoutData],
-        delete_draft_ids: [workout.id],
+        completedWorkouts: [workoutData],
+        deleteDraftIds: [workout.id],
       });
 
       // Delete local draft

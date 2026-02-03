@@ -87,34 +87,36 @@ export async function getWorkouts(userId, { limit = 50, offset = 0 } = {}) {
     OFFSET ${offset}
   `;
 
-  // Transform to match expected response format
+  // Transform to match expected response format (snake_case for frontend compatibility)
   const workoutsWithDetails = workouts.map(workout => ({
     id: workout.id,
     name: workout.name,
-    startedAt: workout.started_at,
-    completedAt: workout.completed_at,
-    durationSeconds: workout.duration_seconds,
-    totalVolume: workout.total_volume ? parseFloat(workout.total_volume) : 0,
+    started_at: workout.started_at,
+    completed_at: workout.completed_at,
+    duration_seconds: workout.duration_seconds,
+    total_volume: workout.total_volume ? parseFloat(workout.total_volume) : 0,
     notes: workout.notes,
-    templateId: workout.template_id,
+    template_id: workout.template_id,
     exercises: workout.exercises.map(ex => ({
       id: ex.id,
-      exerciseId: ex.exerciseId,
-      exerciseName: ex.exerciseName,
-      exerciseType: ex.exerciseType,
-      orderIndex: ex.orderIndex,
-      isCompleted: ex.isCompleted,
+      exercise_id: ex.exerciseId,
+      name: ex.exerciseName,
+      exercise_name: ex.exerciseName,
+      type: ex.exerciseType,
+      exercise_type: ex.exerciseType,
+      order_index: ex.orderIndex,
+      is_completed: ex.isCompleted,
       sets: ex.sets.map(set => ({
         id: set.id,
-        setNumber: set.setNumber,
+        set_number: set.setNumber,
         weight: set.weight ? parseFloat(set.weight) : null,
         reps: set.reps,
         rir: set.rir,
-        durationSeconds: set.durationSeconds,
+        duration_seconds: set.durationSeconds,
         distance: set.distance ? parseFloat(set.distance) : null,
         notes: set.notes,
-        isWarmup: set.isWarmup,
-        isCompleted: set.isCompleted
+        is_warmup: set.isWarmup,
+        is_completed: set.isCompleted
       }))
     }))
   }));
@@ -198,30 +200,32 @@ export async function getWorkoutById(workoutId, userId) {
   return {
     id: workout.id,
     name: workout.name,
-    startedAt: workout.started_at,
-    completedAt: workout.completed_at,
-    durationSeconds: workout.duration_seconds,
-    totalVolume: workout.total_volume ? parseFloat(workout.total_volume) : 0,
+    started_at: workout.started_at,
+    completed_at: workout.completed_at,
+    duration_seconds: workout.duration_seconds,
+    total_volume: workout.total_volume ? parseFloat(workout.total_volume) : 0,
     notes: workout.notes,
-    templateId: workout.template_id,
+    template_id: workout.template_id,
     exercises: workout.exercises.map(ex => ({
       id: ex.id,
-      exerciseId: ex.exerciseId,
-      exerciseName: ex.exerciseName,
-      exerciseType: ex.exerciseType,
-      orderIndex: ex.orderIndex,
-      isCompleted: ex.isCompleted,
+      exercise_id: ex.exerciseId,
+      name: ex.exerciseName,
+      exercise_name: ex.exerciseName,
+      type: ex.exerciseType,
+      exercise_type: ex.exerciseType,
+      order_index: ex.orderIndex,
+      is_completed: ex.isCompleted,
       sets: ex.sets.map(set => ({
         id: set.id,
-        setNumber: set.setNumber,
+        set_number: set.setNumber,
         weight: set.weight ? parseFloat(set.weight) : null,
         reps: set.reps,
         rir: set.rir,
-        durationSeconds: set.durationSeconds,
+        duration_seconds: set.durationSeconds,
         distance: set.distance ? parseFloat(set.distance) : null,
         notes: set.notes,
-        isWarmup: set.isWarmup,
-        isCompleted: set.isCompleted
+        is_warmup: set.isWarmup,
+        is_completed: set.isCompleted
       }))
     }))
   };

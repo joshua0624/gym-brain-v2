@@ -48,7 +48,7 @@ const handlers = {
 
         const result = await getWeeklyStats(userId, week);
 
-        return res.status(200).json(result);
+        return res.status(200).json({ stats: result });
       } catch (error) {
         console.error('Error fetching weekly stats:', error);
 
@@ -69,7 +69,7 @@ const handlers = {
 
         const result = await getExerciseProgress(exerciseId, userId);
 
-        return res.status(200).json(result);
+        return res.status(200).json({ progress: result.data, ...result });
       } catch (error) {
         console.error('Error fetching progress data:', error);
 

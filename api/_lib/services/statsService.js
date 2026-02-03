@@ -84,8 +84,8 @@ export async function getPRs(userId, exerciseId = null) {
 
     if (!prsByExercise[exerciseKey]) {
       prsByExercise[exerciseKey] = {
-        exerciseId: set.exercise_id,
-        exerciseName: set.exercise_name,
+        exercise_id: set.exercise_id,
+        exercise_name: set.exercise_name,
         repRanges: {}
       };
     }
@@ -96,16 +96,16 @@ export async function getPRs(userId, exerciseId = null) {
         const currentPR = prsByExercise[exerciseKey].repRanges[range.name];
 
         // Update PR if this is heavier weight (or first record for this range)
-        if (!currentPR || set.weight > currentPR.maxWeight) {
+        if (!currentPR || set.weight > currentPR.max_weight) {
           prsByExercise[exerciseKey].repRanges[range.name] = {
-            repRange: range.name,
-            maxWeight: parseFloat(set.weight),
+            rep_range: range.name,
+            max_weight: parseFloat(set.weight),
             reps: set.reps,
             rir: set.rir,
-            estimated1rm: set.estimated_1rm ? parseFloat(set.estimated_1rm) : null,
+            estimated_1rm: set.estimated_1rm ? parseFloat(set.estimated_1rm) : null,
             date: set.date,
-            workoutId: set.workout_id,
-            workoutName: set.workout_name
+            workout_id: set.workout_id,
+            workout_name: set.workout_name
           };
         }
       }
@@ -118,8 +118,8 @@ export async function getPRs(userId, exerciseId = null) {
     const exercise = prsByExercise[exerciseKey];
     for (const rangeName in exercise.repRanges) {
       prs.push({
-        exerciseId: exercise.exerciseId,
-        exerciseName: exercise.exerciseName,
+        exercise_id: exercise.exercise_id,
+        exercise_name: exercise.exercise_name,
         ...exercise.repRanges[rangeName]
       });
     }
@@ -127,10 +127,10 @@ export async function getPRs(userId, exerciseId = null) {
 
   // Sort by exercise name, then by rep range
   prs.sort((a, b) => {
-    if (a.exerciseName !== b.exerciseName) {
-      return a.exerciseName.localeCompare(b.exerciseName);
+    if (a.exercise_name !== b.exercise_name) {
+      return a.exercise_name.localeCompare(b.exercise_name);
     }
-    return REP_RANGE_ORDER[a.repRange] - REP_RANGE_ORDER[b.repRange];
+    return REP_RANGE_ORDER[a.rep_range] - REP_RANGE_ORDER[b.rep_range];
   });
 
   return {
@@ -258,14 +258,11 @@ export async function getWeeklyStats(userId, weekDate = null) {
     }
   }
 
-  // Format volume by muscle with percentages
-  const volumeByMuscleArray = Object.entries(volumeByMuscle)
-    .map(([muscle, volume]) => ({
-      muscle,
-      volume: parseFloat(volume.toFixed(2)),
-      percentage: totalVolume > 0 ? parseFloat(((volume / totalVolume) * 100).toFixed(1)) : 0
-    }))
-    .sort((a, b) => b.volume - a.volume); // Sort by volume descending
+  // Format volume by muscle (keep as object for frontend compatibility)
+  const volumeByMuscleFormatted = {};
+  for (const [muscle, volume] of Object.entries(volumeByMuscle)) {
+    volumeByMuscleFormatted[muscle] = parseFloat(volume.toFixed(2));
+  }
 
   // Build frequency heatmap (all 7 days of the week)
   const frequencyHeatmap = [];
@@ -289,10 +286,10 @@ export async function getWeeklyStats(userId, weekDate = null) {
       start: weekStart.toISOString().split('T')[0],
       end: weekEnd.toISOString().split('T')[0]
     },
-    totalVolume: parseFloat(totalVolume.toFixed(2)),
-    totalWorkouts,
-    volumeByMuscle: volumeByMuscleArray,
-    frequencyHeatmap
+    total_volume: parseFloat(totalVolume.toFixed(2)),
+    total_workouts: totalWorkouts,
+    volume_by_muscle: volumeByMuscleFormatted,
+    frequency_heatmap: frequencyHeatmap
   };
 }
 
@@ -353,23 +350,23 @@ export async function getExerciseProgress(exerciseId, userId) {
     ORDER BY w.completed_at DESC, s.set_number ASC
   `;
 
-  // Transform the results to camelCase
+  // Transform the results to snake_case
   const formattedData = progressData.map(row => ({
     date: row.date,
-    workoutId: row.workout_id,
-    workoutName: row.workout_name,
+    workout_id: row.workout_id,
+    workout_name: row.workout_name,
     weight: parseFloat(row.weight),
     reps: row.reps,
     rir: row.rir,
-    estimated1rm: row.estimated_1rm ? parseFloat(row.estimated_1rm) : null,
-    setNumber: row.set_number,
+    estimated_1rm: row.estimated_1rm ? parseFloat(row.estimated_1rm) : null,
+    set_number: row.set_number,
     notes: row.notes
   }));
 
   return {
-    exerciseId: exercise.id,
-    exerciseName: exercise.name,
+    exercise_id: exercise.id,
+    exercise_name: exercise.name,
     data: formattedData,
-    totalSets: formattedData.length
+    total_sets: formattedData.length
   };
 }
