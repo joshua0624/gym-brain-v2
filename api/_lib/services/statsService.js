@@ -182,6 +182,7 @@ export async function getWeeklyStats(userId, weekDate = null) {
       w.id as workout_id,
       w.name as workout_name,
       w.completed_at,
+      w.duration_seconds,
       DATE(w.completed_at) as workout_date,
       e.id as exercise_id,
       e.name as exercise_name,
@@ -278,8 +279,51 @@ export async function getWeeklyStats(userId, weekDate = null) {
     });
   }
 
+  // Calculate sets by muscle group (same attribution as volume)
+  const setsByMuscle = {};
+
+  for (const row of workouts) {
+    if (row.is_warmup) continue;
+
+    // Add to primary muscles (1.0 set)
+    if (row.primary_muscles && Array.isArray(row.primary_muscles)) {
+      for (const muscle of row.primary_muscles) {
+        if (!setsByMuscle[muscle]) setsByMuscle[muscle] = 0;
+        setsByMuscle[muscle] += 1;
+      }
+    }
+
+    // Add to secondary muscles (0.5 set)
+    if (row.secondary_muscles && Array.isArray(row.secondary_muscles)) {
+      for (const muscle of row.secondary_muscles) {
+        if (!setsByMuscle[muscle]) setsByMuscle[muscle] = 0;
+        setsByMuscle[muscle] += 0.5;
+      }
+    }
+  }
+
+  // Format sets by muscle
+  const setsByMuscleFormatted = {};
+  for (const [muscle, sets] of Object.entries(setsByMuscle)) {
+    setsByMuscleFormatted[muscle] = parseFloat(sets.toFixed(1));
+  }
+
   // Count unique workouts
   const totalWorkouts = new Set(workouts.map(w => w.workout_id)).size;
+
+  // Calculate total sets (count non-warmup sets)
+  const totalSets = workouts.filter(row => !row.is_warmup).length;
+
+  // Calculate average duration
+  const workoutIds = [...new Set(workouts.map(w => w.workout_id))];
+  const totalDuration = workouts
+    .filter((row, idx, arr) =>
+      arr.findIndex(r => r.workout_id === row.workout_id) === idx
+    )
+    .reduce((sum, row) => sum + (row.duration_seconds || 0), 0);
+  const avgDurationMinutes = workoutIds.length > 0
+    ? Math.round(totalDuration / workoutIds.length / 60)
+    : null;
 
   return {
     week: {
@@ -288,7 +332,10 @@ export async function getWeeklyStats(userId, weekDate = null) {
     },
     total_volume: parseFloat(totalVolume.toFixed(2)),
     total_workouts: totalWorkouts,
+    total_sets: totalSets,
+    avg_duration_minutes: avgDurationMinutes,
     volume_by_muscle: volumeByMuscleFormatted,
+    sets_by_muscle: setsByMuscleFormatted,
     frequency_heatmap: frequencyHeatmap
   };
 }
@@ -321,23 +368,13 @@ export async function getExerciseProgress(exerciseId, userId) {
 
   const exercise = exerciseResult[0];
 
-  // Query all sets for this exercise across all user's workouts
+  // Query aggregated data by date (one entry per date)
   const progressData = await sql`
     SELECT
-      w.id as workout_id,
-      w.name as workout_name,
-      w.completed_at as date,
-      s.set_number,
-      s.weight,
-      s.reps,
-      s.rir,
-      s.notes,
-      -- Calculate estimated 1RM using Brzycki formula
-      CASE
-        WHEN s.reps > 0 AND s.weight IS NOT NULL THEN
-          ROUND(s.weight / (1.0278 - 0.0278 * s.reps), 2)
-        ELSE NULL
-      END as estimated_1rm
+      DATE(w.completed_at) as date,
+      MAX(s.weight) as max_weight,
+      SUM(s.weight * s.reps) as total_volume,
+      MAX(ROUND(s.weight / (1.0278 - 0.0278 * s.reps), 2)) as estimated_1rm
     FROM "set" s
     INNER JOIN workout_exercise we ON s.workout_exercise_id = we.id
     INNER JOIN workout w ON we.workout_id = w.id
@@ -347,26 +384,22 @@ export async function getExerciseProgress(exerciseId, userId) {
     AND s.is_completed = true
     AND s.weight IS NOT NULL
     AND s.reps IS NOT NULL
-    ORDER BY w.completed_at DESC, s.set_number ASC
+    GROUP BY DATE(w.completed_at)
+    ORDER BY DATE(w.completed_at) ASC
   `;
 
   // Transform the results to snake_case
   const formattedData = progressData.map(row => ({
     date: row.date,
-    workout_id: row.workout_id,
-    workout_name: row.workout_name,
-    weight: parseFloat(row.weight),
-    reps: row.reps,
-    rir: row.rir,
-    estimated_1rm: row.estimated_1rm ? parseFloat(row.estimated_1rm) : null,
-    set_number: row.set_number,
-    notes: row.notes
+    max_weight: parseFloat(row.max_weight),
+    total_volume: parseFloat(row.total_volume),
+    estimated_1rm: row.estimated_1rm ? parseFloat(row.estimated_1rm) : null
   }));
 
   return {
     exercise_id: exercise.id,
     exercise_name: exercise.name,
-    data: formattedData,
-    total_sets: formattedData.length
+    progress: formattedData,
+    total_entries: formattedData.length
   };
 }

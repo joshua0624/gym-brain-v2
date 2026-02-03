@@ -24,6 +24,8 @@ const Progress = () => {
   const [weeklyStats, setWeeklyStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState('charts'); // 'charts' | 'prs' | 'weekly'
+  const [selectedPRExerciseId, setSelectedPRExerciseId] = useState(null);
+  const [muscleChartMode, setMuscleChartMode] = useState('volume'); // 'volume' | 'sets'
   const { error: showError } = useToast();
 
   useEffect(() => {
@@ -55,8 +57,8 @@ const Progress = () => {
   const loadProgressData = async (exerciseId) => {
     setLoading(true);
     try {
-      const data = await progressAPI.getExerciseProgress(exerciseId);
-      setProgressData(data.progress || []);
+      const result = await progressAPI.getExerciseProgress(exerciseId);
+      setProgressData(result.progress || []);
     } catch (err) {
       console.error('Failed to load progress data:', err);
       showError('Failed to load progress data');
@@ -314,51 +316,72 @@ const Progress = () => {
               </div>
             ) : (
               <>
-                {/* PR table by exercise */}
-                {exercises.map(exercise => {
-                  const exercisePRs = prs.filter(pr => pr.exercise_id === exercise.id);
-                  if (exercisePRs.length === 0) return null;
-
-                  return (
-                    <Card key={exercise.id}>
-                      <h3 className="font-display text-lg font-semibold text-text mb-4">
+                {/* Exercise selector */}
+                <Card>
+                  <label className="block text-sm font-medium text-text-muted mb-2">
+                    Select Exercise
+                  </label>
+                  <select
+                    value={selectedPRExerciseId || ''}
+                    onChange={(e) => setSelectedPRExerciseId(e.target.value)}
+                    className="w-full md:w-96 px-4 py-2.5 bg-surface border border-border rounded-lg text-text font-body focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  >
+                    <option value="">All Exercises</option>
+                    {exercises.map(exercise => (
+                      <option key={exercise.id} value={exercise.id}>
                         {exercise.name}
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {REP_RANGES.map(repRange => {
-                          const pr = exercisePRs.find(p => p.rep_range === repRange.value);
-                          return (
-                            <div
-                              key={repRange.value}
-                              className="bg-bg-alt rounded-lg p-4 border border-border-light"
-                            >
-                              <div className="text-sm font-medium text-text-muted mb-1">
-                                {repRange.label}
-                              </div>
-                              {pr ? (
-                                <>
-                                  <div className="font-display text-2xl font-bold text-text mb-1">
-                                    {formatWeight(pr.max_weight)}
-                                  </div>
-                                  <div className="text-xs text-text-muted">
-                                    {pr.reps} reps • {formatDate(pr.date)}
-                                  </div>
-                                  {pr.estimated_1rm && (
-                                    <div className="text-xs text-text-light mt-1">
-                                      Est. 1RM: {formatWeight(pr.estimated_1rm)}
+                      </option>
+                    ))}
+                  </select>
+                </Card>
+
+                {/* PR table by exercise */}
+                {exercises
+                  .filter(exercise => !selectedPRExerciseId || exercise.id === selectedPRExerciseId)
+                  .map(exercise => {
+                    const exercisePRs = prs.filter(pr => pr.exercise_id === exercise.id);
+                    if (exercisePRs.length === 0) return null;
+
+                    return (
+                      <Card key={exercise.id}>
+                        <h3 className="font-display text-lg font-semibold text-text mb-4">
+                          {exercise.name}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {REP_RANGES.map(repRange => {
+                            const pr = exercisePRs.find(p => p.rep_range === repRange.value);
+                            return (
+                              <div
+                                key={repRange.value}
+                                className="bg-bg-alt rounded-lg p-4 border border-border-light"
+                              >
+                                <div className="text-sm font-medium text-text-muted mb-1">
+                                  {repRange.label}
+                                </div>
+                                {pr ? (
+                                  <>
+                                    <div className="font-display text-2xl font-bold text-text mb-1">
+                                      {formatWeight(pr.max_weight)}
                                     </div>
-                                  )}
-                                </>
-                              ) : (
-                                <div className="text-text-light">No data</div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </Card>
-                  );
-                })}
+                                    <div className="text-xs text-text-muted">
+                                      {pr.reps} reps • {formatDate(pr.date)}
+                                    </div>
+                                    {pr.estimated_1rm && (
+                                      <div className="text-xs text-text-light mt-1">
+                                        Est. 1RM: {formatWeight(pr.estimated_1rm)}
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <div className="text-text-light">No data</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    );
+                  })}
               </>
             )}
           </div>
@@ -402,30 +425,48 @@ const Progress = () => {
                   </Card>
                 </div>
 
-                {/* Volume by muscle group */}
+                {/* Volume/Sets by muscle group */}
                 {weeklyStats.volume_by_muscle && Object.keys(weeklyStats.volume_by_muscle).length > 0 && (
                   <Card>
-                    <h3 className="font-display text-lg font-semibold text-text mb-4">
-                      Volume by Muscle Group
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-display text-lg font-semibold text-text">
+                        {muscleChartMode === 'volume' ? 'Volume' : 'Sets'} by Muscle Group
+                      </h3>
+                      <SegmentedControl
+                        value={muscleChartMode}
+                        onChange={setMuscleChartMode}
+                        options={[
+                          { value: 'volume', label: 'Volume' },
+                          { value: 'sets', label: 'Sets' }
+                        ]}
+                      />
+                    </div>
                     <div className="space-y-4">
-                      {Object.entries(weeklyStats.volume_by_muscle)
-                        .sort(([, a], [, b]) => b - a)
-                        .map(([muscle, volume]) => {
-                          const maxVolume = Math.max(...Object.values(weeklyStats.volume_by_muscle));
-                          const percentage = (volume / maxVolume) * 100;
+                      {(() => {
+                        const muscleData = muscleChartMode === 'volume'
+                          ? weeklyStats.volume_by_muscle
+                          : weeklyStats.sets_by_muscle || {};
+                        const maxValue = Math.max(...Object.values(muscleData));
+                        const sortedData = Object.entries(muscleData).sort(([, a], [, b]) => b - a);
+
+                        return sortedData.map(([muscle, value]) => {
+                          const percentage = (value / maxValue) * 100;
                           return (
                             <div key={muscle}>
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-text font-medium capitalize">{muscle}</span>
                                 <span className="font-display text-text font-semibold">
-                                  {Math.round(volume).toLocaleString()} <span className="text-text-muted text-sm font-body font-normal">lbs</span>
+                                  {muscleChartMode === 'volume'
+                                    ? `${Math.round(value).toLocaleString()} lbs`
+                                    : `${Math.round(value)} sets`
+                                  }
                                 </span>
                               </div>
                               <ProgressBar progress={percentage} />
                             </div>
                           );
-                        })}
+                        });
+                      })()}
                     </div>
                   </Card>
                 )}

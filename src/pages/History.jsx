@@ -15,6 +15,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
 import EmptyState from '../components/ui/EmptyState';
+import Input from '../components/ui/Input';
 import { SkeletonWorkoutCard } from '../components/ui/Skeleton';
 
 // Icons
@@ -22,6 +23,7 @@ import DumbbellIcon from '../icons/DumbbellIcon';
 import ChevronRightIcon from '../icons/ChevronRightIcon';
 import TrashIcon from '../icons/TrashIcon';
 import ClockIcon from '../icons/ClockIcon';
+import EditIcon from '../icons/EditIcon';
 
 const History = () => {
   const [workouts, setWorkouts] = useState([]);
@@ -312,11 +314,74 @@ const WorkoutTableRow = ({ workout, onViewDetails, onDelete }) => {
  * Workout Details Modal Component
  */
 const WorkoutDetailsModal = ({ workout, onClose }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(workout.name || '');
+  const { success: showSuccess, error: showError } = useToast();
+
+  const handleSave = async () => {
+    if (!editedName.trim()) {
+      showError('Workout name cannot be empty');
+      return;
+    }
+
+    try {
+      await workoutAPI.update(workout.id, { name: editedName.trim() });
+      showSuccess('Workout renamed successfully');
+      setIsEditing(false);
+      onClose(); // Close modal to trigger parent refresh
+    } catch (err) {
+      console.error('Failed to rename workout:', err);
+      showError('Failed to rename workout');
+    }
+  };
+
+  // Custom title with inline edit button
+  const modalTitle = !isEditing ? (
+    <div className="flex items-center gap-2">
+      <span>{workout.name || 'Unnamed Workout'}</span>
+      <button
+        onClick={() => setIsEditing(true)}
+        className="p-1.5 text-text-muted hover:text-accent transition-colors"
+        aria-label="Rename workout"
+      >
+        <EditIcon size={18} color="currentColor" />
+      </button>
+    </div>
+  ) : (
+    <div className="flex items-center gap-2 flex-1 mr-2">
+      <Input
+        value={editedName}
+        onChange={(e) => setEditedName(e.target.value)}
+        placeholder="Workout name"
+        maxLength={100}
+        autoFocus
+        className="flex-1"
+      />
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={handleSave}
+      >
+        Save
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          setEditedName(workout.name || '');
+          setIsEditing(false);
+        }}
+      >
+        Cancel
+      </Button>
+    </div>
+  );
+
   return (
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={workout.name || 'Unnamed Workout'}
+      title={modalTitle}
       size="lg"
       className="max-w-4xl"
     >
