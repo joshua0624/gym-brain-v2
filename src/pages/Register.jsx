@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useToastContext } from '../contexts/ToastContext';
 import { isValidUsername, isValidEmail, isValidPassword, formatError } from '../lib/formatters';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -12,6 +13,7 @@ import Input from '../components/ui/Input';
 const Register = () => {
   const navigate = useNavigate();
   const { register, loading } = useAuth();
+  const { success, error: showError } = useToastContext();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -65,9 +67,10 @@ const Register = () => {
     );
 
     if (result.success) {
+      success('Account created successfully!');
       navigate('/workout');
     } else {
-      setErrors({ submit: result.error });
+      showError(result.error || 'Registration failed');
     }
   };
 
@@ -82,12 +85,6 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {errors.submit && (
-            <div className="bg-error/10 border border-error text-error px-4 py-3 rounded-xl text-sm">
-              {formatError(errors.submit)}
-            </div>
-          )}
-
           <Input
             label="Username"
             type="text"

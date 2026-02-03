@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useToastContext } from '../contexts/ToastContext';
 import { formatError } from '../lib/formatters';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -12,12 +13,12 @@ import Input from '../components/ui/Input';
 const Login = () => {
   const navigate = useNavigate();
   const { login, loading, error } = useAuth();
+  const { success, error: showError } = useToastContext();
   const [formData, setFormData] = useState({
     usernameOrEmail: '',
     password: '',
     rememberMe: false,
   });
-  const [localError, setLocalError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -25,12 +26,10 @@ const Login = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    setLocalError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalError(null);
 
     const result = await login(
       formData.usernameOrEmail,
@@ -39,9 +38,10 @@ const Login = () => {
     );
 
     if (result.success) {
+      success('Welcome back!');
       navigate('/workout');
     } else {
-      setLocalError(result.error);
+      showError(result.error || 'Login failed');
     }
   };
 
@@ -56,12 +56,6 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {(localError || error) && (
-            <div className="bg-error/10 border border-error text-error px-4 py-3 rounded-xl text-sm">
-              {formatError(localError || error)}
-            </div>
-          )}
-
           <Input
             label="Username or Email"
             type="text"
