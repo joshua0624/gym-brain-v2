@@ -6,6 +6,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './contexts/ToastContext';
+import { OfflineBanner } from './components/OfflineBanner';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
@@ -21,6 +22,7 @@ function App() {
   return (
     <Router>
       <ToastProvider>
+        <OfflineBanner />
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />

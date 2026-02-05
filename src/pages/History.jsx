@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { workoutAPI } from '../lib/api';
 import { formatDate, formatDateTime, formatDuration, formatVolume, formatExerciseCount, formatSetCount } from '../lib/formatters';
 import { useToast } from '../hooks/useToast';
@@ -26,15 +27,17 @@ import ClockIcon from '../icons/ClockIcon';
 import EditIcon from '../icons/EditIcon';
 
 const History = () => {
+  const location = useLocation();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const { success, error: showError } = useToast();
 
+  // Reload workouts when navigating to this page
   useEffect(() => {
     loadWorkouts();
-  }, []);
+  }, [location]);
 
   const loadWorkouts = async () => {
     setLoading(true);
@@ -159,9 +162,17 @@ const WorkoutCard = ({ workout, onViewDetails, onDelete }) => {
     <Card variant="elevated" padding="md" onClick={onViewDetails}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h3 className="text-[16px] font-semibold text-text font-display mb-1">
-            {workout.name || `Workout - ${formatDate(workout.started_at)}`}
-          </h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-[16px] font-semibold text-text font-display">
+              {workout.name || `Workout - ${formatDate(workout.started_at)}`}
+            </h3>
+            {workout.sync_status === 'local' && (
+              <Badge variant="warning" size="sm">Pending</Badge>
+            )}
+            {workout.sync_status === 'failed' && (
+              <Badge variant="error" size="sm">Failed</Badge>
+            )}
+          </div>
           <p className="text-[13px] text-text-muted">
             {formatDateTime(workout.completed_at || workout.started_at)}
           </p>
@@ -272,7 +283,15 @@ const WorkoutTableRow = ({ workout, onViewDetails, onDelete }) => {
         {formatDate(workout.completed_at || workout.started_at)}
       </td>
       <td className="px-6 py-4 text-[14px] text-text font-medium">
-        {workout.name || 'Unnamed Workout'}
+        <div className="flex items-center gap-2">
+          <span>{workout.name || 'Unnamed Workout'}</span>
+          {workout.sync_status === 'local' && (
+            <Badge variant="warning" size="sm">Pending</Badge>
+          )}
+          {workout.sync_status === 'failed' && (
+            <Badge variant="error" size="sm">Failed</Badge>
+          )}
+        </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text-muted">
         {formatDuration(workout.duration_seconds)}

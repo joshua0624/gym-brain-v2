@@ -109,9 +109,10 @@ export const DRAFT_CONFIG = {
  * Sync configuration
  */
 export const SYNC_CONFIG = {
-  retryAttempts: 3,
-  retryDelayMs: 1000,
-  exponentialBackoff: true,
+  maxRetries: 5, // Max retry attempts before marking as failed
+  throttleMs: 100, // Throttle between queue items (prevents Neon pool exhaustion)
+  intervalMs: 30000, // Background sync polling interval (30 seconds)
+  backoffBaseMs: 1000, // Exponential backoff: 1s, 2s, 4s, 8s, 16s
 };
 
 /**

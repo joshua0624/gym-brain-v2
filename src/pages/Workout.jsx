@@ -231,16 +231,25 @@ const Workout = () => {
    */
   const fetchPreviousPerformance = async (exerciseId) => {
     try {
-      // Fetch last workout containing this exercise
-      const response = await workoutAPI.getAll({ exerciseId, limit: 1 });
-      const lastWorkout = response.workouts?.[0];
+      // Fetch recent workouts (server doesn't filter by exerciseId)
+      const response = await workoutAPI.getAll({ limit: 20 });
 
-      if (lastWorkout) {
-        const exerciseData = lastWorkout.exercises?.find(ex => ex.exercise_id === exerciseId);
+      // Find the most recent workout that contains this exercise
+      const workoutsWithExercise = response.workouts?.filter(w =>
+        w.exercises?.some(ex => ex.exercise_id === exerciseId || ex.exerciseId === exerciseId)
+      ) || [];
+
+      if (workoutsWithExercise.length > 0) {
+        // Get the most recent one
+        const lastWorkout = workoutsWithExercise[0];
+        const exerciseData = lastWorkout.exercises?.find(
+          ex => ex.exercise_id === exerciseId || ex.exerciseId === exerciseId
+        );
+
         if (exerciseData?.sets) {
           setPreviousPerformance(prev => ({
             ...prev,
-            [exerciseId]: exerciseData.sets.filter(s => !s.is_warmup),
+            [exerciseId]: exerciseData.sets.filter(s => !s.is_warmup && !s.isWarmup),
           }));
         }
       }
@@ -344,14 +353,13 @@ const Workout = () => {
       // Calculate total volume
       const totalVolume = calculateVolume(workout.exercises);
 
-      // Prepare workout data for sync
+      // Prepare workout data for sync endpoint (camelCase)
       const workoutData = {
         id: workout.id,
         name: workout.name,
         startedAt: workout.started_at,
         completedAt,
         durationSeconds,
-        totalVolume,
         exercises: workout.exercises.map(ex => ({
           id: ex.id,
           exerciseId: ex.exercise_id,
@@ -371,6 +379,29 @@ const Workout = () => {
           })),
         })),
       };
+
+      console.log('[Workout] Prepared workout data:', {
+        id: workoutData.id,
+        name: workoutData.name,
+        exerciseCount: workoutData.exercises.length,
+        exercises: workoutData.exercises.map(ex => ({
+          exerciseId: ex.exerciseId,
+          setCount: ex.sets.length,
+          sets: ex.sets
+        }))
+      });
+
+      // Debug: Check what's in the workout state
+      console.log('[Workout] Raw workout state before conversion:', {
+        exercises: workout.exercises.map(ex => ({
+          exercise_id: ex.exercise_id,
+          sets: ex.sets.map(s => ({
+            weight: s.weight,
+            reps: s.reps,
+            is_completed: s.is_completed
+          }))
+        }))
+      });
 
       // Sync to server with atomic draft deletion
       await workoutAPI.sync({

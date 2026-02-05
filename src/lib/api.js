@@ -6,6 +6,8 @@
  */
 
 import axios from 'axios';
+import { workoutDB } from './indexedDB';
+import { queueOperation, removeQueueItem, generateUUID } from './syncManager';
 
 // Base URL for API requests
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -219,43 +221,216 @@ export const exerciseAPI = {
  */
 export const workoutAPI = {
   /**
-   * Get all workouts
+   * Get all workouts (offline-first)
    */
   getAll: async (params = {}) => {
-    const response = await apiClient.get('/workouts', { params });
-    return response.data;
+    try {
+      // Try network first
+      const response = await apiClient.get('/workouts', { params });
+
+      // Cache in IndexedDB for offline access
+      if (response.data.workouts) {
+        for (const workout of response.data.workouts) {
+          await workoutDB.save({
+            ...workout,
+            sync_status: 'synced',
+          });
+        }
+      }
+
+      return response.data;
+    } catch (error) {
+      // Offline fallback - read from IndexedDB
+      if (!navigator.onLine || error.code === 'ERR_NETWORK') {
+        const localWorkouts = await workoutDB.getAll();
+        return { workouts: localWorkouts || [] };
+      }
+      throw error;
+    }
   },
 
   /**
-   * Get single workout by ID
+   * Get single workout by ID (offline-first)
    */
   getById: async (workoutId) => {
-    const response = await apiClient.get(`/workouts/${workoutId}`);
-    return response.data;
+    try {
+      // Try network first
+      const response = await apiClient.get(`/workouts/${workoutId}`);
+
+      // Cache in IndexedDB
+      await workoutDB.save({
+        ...response.data.workout,
+        sync_status: 'synced',
+      });
+
+      return response.data;
+    } catch (error) {
+      // Offline fallback - read from IndexedDB
+      if (!navigator.onLine || error.code === 'ERR_NETWORK') {
+        const localWorkout = await workoutDB.get(workoutId);
+        if (localWorkout) {
+          return { workout: localWorkout };
+        }
+      }
+      throw error;
+    }
   },
 
   /**
-   * Create new workout
+   * Create new workout (with optimistic update)
    */
   create: async (workoutData) => {
-    const response = await apiClient.post('/workouts', workoutData);
-    return response.data;
+    console.log('[API] Creating workout:', workoutData.id || 'new');
+
+    // 1. Generate UUID if not provided
+    const workoutId = workoutData.id || generateUUID();
+    const optimisticWorkout = {
+      ...workoutData,
+      id: workoutId,
+      sync_status: 'local',
+      updated_at: new Date().toISOString(),
+    };
+
+    // 2. Optimistic update to IndexedDB
+    await workoutDB.save(optimisticWorkout);
+    console.log('[API] Saved to IndexedDB with sync_status: local');
+
+    // 3. Queue for sync (get queue item ID)
+    const queueItemId = await queueOperation('CREATE_WORKOUT', {
+      ...workoutData,
+      id: workoutId,
+    });
+
+    // 4. Attempt immediate sync if online
+    if (navigator.onLine) {
+      try {
+        console.log('[API] Attempting immediate sync...');
+        const payload = {
+          ...workoutData,
+          id: workoutId,
+        };
+
+        console.log('[API] Sending payload:', {
+          id: payload.id,
+          name: payload.name,
+          exerciseCount: payload.exercises?.length || 0,
+          firstExercise: payload.exercises?.[0] ? {
+            exercise_id: payload.exercises[0].exercise_id,
+            setCount: payload.exercises[0].sets?.length || 0,
+            firstSet: payload.exercises[0].sets?.[0]
+          } : null
+        });
+
+        const response = await apiClient.post('/workouts', payload);
+
+        console.log('[API] Immediate sync successful!');
+        console.log('[API] Server response:', response.data);
+
+        // Extract workout from response (server returns { workout: {...} })
+        const serverWorkout = response.data.workout || response.data;
+
+        // Success: Reconcile IndexedDB
+        await workoutDB.save({
+          ...serverWorkout,
+          sync_status: 'synced',
+        });
+
+        // CRITICAL: Remove from queue since sync succeeded
+        await removeQueueItem(queueItemId);
+        console.log('[API] Removed from sync queue');
+
+        return serverWorkout;
+      } catch (error) {
+        // Failure: Queue will retry
+        console.warn('[API] Immediate sync failed, queued for later:', error.message);
+        return optimisticWorkout;
+      }
+    }
+
+    // 5. Offline: Return optimistic version
+    console.log('[API] Offline - returning optimistic workout');
+    return optimisticWorkout;
   },
 
   /**
-   * Update workout
+   * Update workout (with optimistic update)
    */
   update: async (workoutId, workoutData) => {
-    const response = await apiClient.put(`/workouts/${workoutId}`, workoutData);
-    return response.data;
+    const optimisticWorkout = {
+      ...workoutData,
+      id: workoutId,
+      sync_status: 'local',
+      updated_at: new Date().toISOString(),
+    };
+
+    // 1. Optimistic update to IndexedDB
+    await workoutDB.save(optimisticWorkout);
+
+    // 2. Queue for sync (get queue item ID)
+    const queueItemId = await queueOperation('UPDATE_WORKOUT', {
+      ...workoutData,
+      id: workoutId,
+    });
+
+    // 3. Attempt immediate sync if online
+    if (navigator.onLine) {
+      try {
+        const response = await apiClient.put(`/workouts/${workoutId}`, workoutData);
+
+        // Extract workout from response
+        const serverWorkout = response.data.workout || response.data;
+
+        // Success: Reconcile IndexedDB
+        await workoutDB.save({
+          ...serverWorkout,
+          sync_status: 'synced',
+        });
+
+        // Remove from queue since sync succeeded
+        await removeQueueItem(queueItemId);
+
+        return serverWorkout;
+      } catch (error) {
+        // Failure: Queue will retry
+        console.warn('[API] Immediate update sync failed, queued for later:', error.message);
+        return optimisticWorkout;
+      }
+    }
+
+    // 4. Offline: Return optimistic version
+    return optimisticWorkout;
   },
 
   /**
-   * Delete workout
+   * Delete workout (with optimistic update)
    */
   delete: async (workoutId) => {
-    const response = await apiClient.delete(`/workouts/${workoutId}`);
-    return response.data;
+    // 1. Optimistic delete from IndexedDB
+    await workoutDB.delete(workoutId);
+
+    // 2. Queue for sync (get queue item ID)
+    const queueItemId = await queueOperation('DELETE_WORKOUT', {
+      id: workoutId,
+    });
+
+    // 3. Attempt immediate sync if online
+    if (navigator.onLine) {
+      try {
+        const response = await apiClient.delete(`/workouts/${workoutId}`);
+
+        // Remove from queue since sync succeeded
+        await removeQueueItem(queueItemId);
+
+        return response.data;
+      } catch (error) {
+        // Failure: Queue will retry
+        console.warn('[API] Immediate delete sync failed, queued for later:', error.message);
+        return { success: true };
+      }
+    }
+
+    // 4. Offline: Return success
+    return { success: true };
   },
 
   /**
@@ -283,11 +458,68 @@ export const workoutAPI = {
   },
 
   /**
-   * Sync offline workouts
+   * Sync offline workouts (with optimistic update)
    */
   sync: async (syncData) => {
-    const response = await apiClient.post('/workouts/sync', syncData);
-    return response.data;
+    const { completedWorkouts, deleteDraftIds } = syncData;
+
+    // Process each workout with optimistic updates
+    for (const workout of completedWorkouts) {
+      const workoutId = workout.id || generateUUID();
+      const optimisticWorkout = {
+        ...workout,
+        id: workoutId,
+        sync_status: 'local',
+        updated_at: new Date().toISOString(),
+      };
+
+      // Save to IndexedDB
+      await workoutDB.save(optimisticWorkout);
+      console.log('[API] Saved workout to IndexedDB:', workoutId);
+    }
+
+    // Queue for sync
+    const queueItemId = await queueOperation('SYNC_WORKOUTS', syncData);
+
+    // Attempt immediate sync if online
+    if (navigator.onLine) {
+      try {
+        console.log('[API] Attempting immediate sync to /workouts/sync...');
+        const response = await apiClient.post('/workouts/sync', syncData);
+
+        console.log('[API] Sync successful!', response.data);
+
+        // Update each workout as synced
+        for (const workout of completedWorkouts) {
+          const syncedWorkout = response.data.syncedWorkouts?.find(
+            sw => sw.clientId === workout.id
+          );
+
+          if (syncedWorkout) {
+            // Get full workout data from server
+            const fullWorkout = await apiClient.get(`/workouts/${syncedWorkout.serverId}`);
+
+            await workoutDB.save({
+              ...fullWorkout.data.workout,
+              sync_status: 'synced',
+            });
+          }
+        }
+
+        // Remove from queue
+        await removeQueueItem(queueItemId);
+        console.log('[API] Removed from sync queue');
+
+        return response.data;
+      } catch (error) {
+        console.warn('[API] Immediate sync failed, queued for later:', error.message);
+        return { success: false, error: error.message };
+      }
+    }
+
+    // Offline: Return optimistic response
+    console.log('[API] Offline - workouts queued for sync');
+    return { success: true, queued: true };
   },
 };
 
