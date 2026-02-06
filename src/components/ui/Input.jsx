@@ -38,6 +38,11 @@ const Input = React.forwardRef(({
   onChange,
   ...props
 }, ref) => {
+  // Generate unique IDs for accessibility
+  const errorId = error ? `${props.id || props.name || 'input'}-error` : undefined;
+  const helperId = helperText ? `${props.id || props.name || 'input'}-helper` : undefined;
+  const describedBy = [errorId, helperId].filter(Boolean).join(' ') || undefined;
+
   // Base input styles
   const baseStyles = `
     bg-bg
@@ -86,7 +91,7 @@ const Input = React.forwardRef(({
     <div className={`${fullWidth ? 'w-full' : ''} ${containerClassName}`.trim()}>
       {/* Label */}
       {label && (
-        <label className="block text-[13px] font-medium text-text mb-1.5">
+        <label htmlFor={props.id} className="block text-[13px] font-medium text-text mb-1.5">
           {label}
         </label>
       )}
@@ -99,21 +104,23 @@ const Input = React.forwardRef(({
         value={value}
         onChange={onChange}
         disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={describedBy}
         className={combinedInputStyles}
         {...props}
       />
 
-      {/* Error Message */}
-      {error && (
-        <p className="mt-1.5 text-[12px] text-error">
-          {error}
+      {/* Helper Text */}
+      {helperText && !error && (
+        <p id={helperId} className="mt-1.5 text-[12px] text-text-muted">
+          {helperText}
         </p>
       )}
 
-      {/* Helper Text */}
-      {helperText && !error && (
-        <p className="mt-1.5 text-[12px] text-text-muted">
-          {helperText}
+      {/* Error Message */}
+      {error && (
+        <p id={errorId} className="mt-1.5 text-[12px] text-error" role="alert">
+          {error}
         </p>
       )}
     </div>

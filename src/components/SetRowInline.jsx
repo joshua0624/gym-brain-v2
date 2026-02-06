@@ -42,7 +42,7 @@ const SetRowInline = ({
         {/* Weight (for weighted exercises) */}
         {isWeighted && (
           <div className="w-16 shrink-0">
-            <div className="text-[14px] font-semibold text-text text-center">
+            <div className="text-[14px] font-mono font-semibold text-text text-center">
               {set.weight ? formatWeight(set.weight) : '—'}
             </div>
             <div className="text-[10px] text-text-light text-center uppercase tracking-wide">
@@ -53,7 +53,7 @@ const SetRowInline = ({
 
         {/* Reps */}
         <div className="w-12 shrink-0">
-          <div className="text-[14px] font-semibold text-text text-center">
+          <div className="text-[14px] font-mono font-semibold text-text text-center">
             {set.reps || '—'}
           </div>
           <div className="text-[10px] text-text-light text-center uppercase tracking-wide">
@@ -63,7 +63,7 @@ const SetRowInline = ({
 
         {/* RIR */}
         <div className="w-10 shrink-0">
-          <div className="text-[14px] font-semibold text-text text-center">
+          <div className="text-[14px] font-mono font-semibold text-text text-center">
             {set.rir !== null && set.rir !== undefined ? set.rir : '—'}
           </div>
           <div className="text-[10px] text-text-light text-center uppercase tracking-wide">
@@ -86,9 +86,10 @@ const SetRowInline = ({
           <button
             onClick={() => setShowNotes(!showNotes)}
             className="w-6 h-6 flex items-center justify-center text-text-muted hover:text-accent transition-colors shrink-0"
-            title="View notes"
+            aria-label={showNotes ? 'Hide notes' : 'View notes'}
+            aria-expanded={showNotes}
           >
-            <NoteIcon size={14} />
+            <NoteIcon size={14} aria-hidden="true" />
           </button>
         )}
 
@@ -99,7 +100,7 @@ const SetRowInline = ({
             variant="icon"
             size="sm"
             className="w-7 h-7"
-            title="Edit set"
+            ariaLabel="Edit set"
           >
             <EditIcon size={14} />
           </Button>
@@ -108,7 +109,7 @@ const SetRowInline = ({
             variant="icon"
             size="sm"
             className="w-7 h-7 text-error hover:bg-error/10"
-            title="Delete set"
+            ariaLabel="Delete set"
           >
             <TrashIcon size={14} />
           </Button>

@@ -90,12 +90,22 @@ const RestTimer = ({ onComplete }) => {
       {/* Timer display */}
       <div className="mb-6">
         <div className="relative">
-          <div className="font-display text-6xl text-center text-text mb-4 tracking-tight">
+          <div
+            className="font-mono text-6xl text-center text-text mb-4 tracking-tight"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {formatRestTimer(timeLeft)}
           </div>
           {targetTime > 0 && (
-            <ProgressBar progress={progress} size="md" variant="success" />
+            <ProgressBar progress={progress} size="md" variant="success" aria-hidden="true" />
           )}
+        </div>
+
+        {/* Screen reader announcements for critical moments */}
+        <div className="sr-only" aria-live="assertive">
+          {isRunning && timeLeft === 10 && '10 seconds remaining'}
+          {timeLeft === 0 && isRunning === false && 'Rest timer complete'}
         </div>
       </div>
 

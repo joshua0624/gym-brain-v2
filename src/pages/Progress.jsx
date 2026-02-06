@@ -360,15 +360,15 @@ const Progress = () => {
                                 </div>
                                 {pr ? (
                                   <>
-                                    <div className="font-display text-2xl font-bold text-text mb-1">
+                                    <div className="font-mono text-2xl font-bold text-text mb-1">
                                       {formatWeight(pr.max_weight)}
                                     </div>
                                     <div className="text-xs text-text-muted">
-                                      {pr.reps} reps • {formatDate(pr.date)}
+                                      <span className="font-mono">{pr.reps}</span> reps • {formatDate(pr.date)}
                                     </div>
                                     {pr.estimated_1rm && (
                                       <div className="text-xs text-text-light mt-1">
-                                        Est. 1RM: {formatWeight(pr.estimated_1rm)}
+                                        Est. 1RM: <span className="font-mono">{formatWeight(pr.estimated_1rm)}</span>
                                       </div>
                                     )}
                                   </>

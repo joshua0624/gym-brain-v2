@@ -761,11 +761,11 @@ const ExerciseBlock = ({
             {previousPerformance.slice(0, 3).map((set, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <span className="font-medium text-text-muted">Set {idx + 1}:</span>
-                <span className="font-display font-semibold">
+                <span className="font-mono font-semibold">
                   {set.weight ? `${set.weight} lbs` : 'BW'} × {set.reps} reps
                 </span>
                 {set.rir !== null && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs font-mono">
                     RIR {set.rir}
                   </Badge>
                 )}

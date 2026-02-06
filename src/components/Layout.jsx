@@ -34,8 +34,16 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-bg flex">
+      {/* Skip to main content */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* Desktop Sidebar Navigation */}
-      <nav className="hidden lg:flex flex-col w-60 h-screen bg-surface border-r border-border-light p-6 sticky top-0 shrink-0">
+      <nav className="hidden lg:flex flex-col w-60 h-screen bg-surface border-r border-border-light p-6 sticky top-0 shrink-0" aria-label="Main navigation">
         {/* Logo */}
         <div className="mb-8">
           <Link to="/workout" className="text-2xl font-bold">
@@ -120,12 +128,12 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 pb-24 lg:pb-8">
+        <main id="main-content" className="flex-1 pb-24 lg:pb-8">
           {children}
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 pt-3 pb-5 px-5 bg-bg border-t border-border-light z-40">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 pt-3 pb-5 px-5 bg-bg border-t border-border-light z-40" aria-label="Mobile navigation">
           <div className="flex justify-around items-center">
             {navItems.map((item) => {
               const Icon = item.Icon;

@@ -1,34 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
 
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
 @theme {
-  /* Color System - Light Mode Defaults */
-  --color-bg: #f5f2ed;
-  --color-bg-alt: #ebe7e0;
-  --color-surface: #ffffff;
-  --color-surface-hover: #fafaf8;
-  --color-text: #2d2a26;
-  --color-text-muted: #6b6560;
-  --color-text-light: #9a948c;
-  --color-accent: #6b7c3f;
-  --color-accent-hover: #5a6935;
-  --color-accent-light: #e8ebdf;
-  --color-secondary: #8b7355;
-  --color-secondary-light: #c4b5a5;
-  --color-border: #d9d4cc;
-  --color-border-light: #e8e4dc;
-  --color-success: #5a7c40;
-  --color-success-bg: #f0f4eb;
-  --color-success-border: #d4e0c8;
-  --color-warning: #b8860b;
-  --color-error: #a65d57;
+  /* Color System - Light Mode Defaults (Sage/Terracotta) */
+  --color-bg: #F8F6F1;
+  --color-bg-alt: #F0EDE8;
+  --color-surface: #FFFEF9;
+  --color-surface-hover: #FFFEF9;
+  --color-text: #3E2723;
+  --color-text-muted: #6D4C41;
+  --color-text-light: #9D8B7F;
+  --color-accent: #6B8E6B;
+  --color-accent-hover: #5A7C5A;
+  --color-accent-light: #E8F0E8;
+  --color-secondary: #C76B4B;
+  --color-secondary-light: #E8C4B4;
+  --color-border: #D9CFC4;
+  --color-border-light: #E8E0D8;
+  --color-success: #6B8E6B;
+  --color-success-bg: #E8F0E8;
+  --color-success-border: #C4DAC4;
+  --color-warning: #D4A84B;
+  --color-error: #B85450;
 
   /* Font Families */
-  --font-display: 'Libre Baskerville', Georgia, serif;
-  --font-body: 'Source Sans 3', system-ui, sans-serif;
-  --font-sans: 'Source Sans 3', system-ui, sans-serif;
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, monospace;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -48,47 +49,69 @@
 
 /* CSS Variables for theming (allows JS theme switching) */
 :root {
-  --bg: #f5f2ed;
-  --bg-alt: #ebe7e0;
-  --surface: #ffffff;
-  --surface-hover: #fafaf8;
-  --text: #2d2a26;
-  --text-muted: #6b6560;
-  --text-light: #9a948c;
-  --accent: #6b7c3f;
-  --accent-hover: #5a6935;
-  --accent-light: #e8ebdf;
-  --secondary: #8b7355;
-  --secondary-light: #c4b5a5;
-  --border: #d9d4cc;
-  --border-light: #e8e4dc;
-  --success: #5a7c40;
-  --success-bg: #f0f4eb;
-  --success-border: #d4e0c8;
-  --warning: #b8860b;
-  --error: #a65d57;
+  /* PRIMARY (Sage Green) */
+  --bg: #F8F6F1;
+  --bg-alt: #F0EDE8;
+  --surface: #FFFEF9;
+  --surface-hover: #FFFEF9;
+
+  /* TEXT */
+  --text: #3E2723;
+  --text-muted: #6D4C41;
+  --text-light: #9D8B7F;
+
+  /* ACCENT (Sage Green) */
+  --accent: #6B8E6B;
+  --accent-hover: #5A7C5A;
+  --accent-light: #E8F0E8;
+
+  /* SECONDARY (Terracotta) */
+  --secondary: #C76B4B;
+  --secondary-light: #E8C4B4;
+
+  /* BORDERS */
+  --border: #D9CFC4;
+  --border-light: #E8E0D8;
+
+  /* STATUS */
+  --success: #6B8E6B;
+  --success-bg: #E8F0E8;
+  --success-border: #C4DAC4;
+  --warning: #D4A84B;
+  --error: #B85450;
 }
 
 [data-theme="dark"] {
-  --bg: #1a1816;
-  --bg-alt: #121110;
-  --surface: #252220;
-  --surface-hover: #2e2a27;
-  --text: #e8e4df;
-  --text-muted: #a09a92;
-  --text-light: #6b665f;
-  --accent: #8fa558;
-  --accent-hover: #a3b86c;
-  --accent-light: #2a2e22;
-  --secondary: #c4a77d;
-  --secondary-light: #3d352a;
-  --border: #3a3632;
-  --border-light: #2e2a27;
-  --success: #7a9c5a;
-  --success-bg: #1e2219;
-  --success-border: #3a4a2e;
-  --warning: #d4a84b;
-  --error: #c47a74;
+  /* BACKGROUND */
+  --bg: #2A2A2A;
+  --bg-alt: #222222;
+  --surface: #3A3A3A;
+  --surface-hover: #424242;
+
+  /* TEXT */
+  --text: #F5F5DC;
+  --text-muted: #B0A89F;
+  --text-light: #7A7268;
+
+  /* ACCENT (Muted Green) */
+  --accent: #4A6B4A;
+  --accent-hover: #5A7C5A;
+  --accent-light: #2A3A2A;
+
+  /* SECONDARY (Deep Terra) */
+  --secondary: #8B4A3A;
+  --secondary-light: #4A3A32;
+
+  /* BORDERS */
+  --border: #4A4A4A;
+  --border-light: #3A3A3A;
+
+  /* STATUS */
+  --success: #5A7C5A;
+  --success-bg: #2A3A2A;
+  --success-border: #3A4A3A;
+  --warning: #D4A84B;
+  --error: #C85450;
 
   /* Update Tailwind theme colors for dark mode */
   --color-bg: var(--bg);
@@ -128,7 +151,7 @@
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'Source Sans 3', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -163,10 +186,20 @@ body {
   }
 }
 
-/* Focus visible styling for accessibility */
+/* Focus visible styling for accessibility (WCAG 2.1 AA compliant) */
 *:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  border-radius: 4px;
+}
+
+/* High contrast for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent);
 }
 
 /* Hide scrollbar but keep functionality */
@@ -177,6 +210,30 @@ body {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Screen reader only (visually hidden but accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
 
 /* Keyframe Animations */

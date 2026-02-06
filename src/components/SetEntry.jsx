@@ -123,7 +123,7 @@ const SetEntry = ({ setNumber, previousSet, onSave, onDelete, initialData, exerc
       {/* Previous performance reference */}
       {previousSet && !isSaved && (
         <div className="mb-3 text-sm text-text-muted bg-bg-alt rounded-lg p-2.5 border border-border-light">
-          <span className="font-medium">Previous:</span> {formatSet(previousSet.weight, previousSet.reps, previousSet.rir)}
+          <span className="font-medium">Previous:</span> <span className="font-mono">{formatSet(previousSet.weight, previousSet.reps, previousSet.rir)}</span>
         </div>
       )}
 
@@ -141,6 +141,7 @@ const SetEntry = ({ setNumber, previousSet, onSave, onDelete, initialData, exerc
             placeholder="0"
             disabled={isSaved}
             error={errors.weight}
+            className="font-mono"
           />
         )}
 
@@ -155,6 +156,7 @@ const SetEntry = ({ setNumber, previousSet, onSave, onDelete, initialData, exerc
           placeholder="0"
           disabled={isSaved}
           error={errors.reps}
+          className="font-mono"
         />
 
         {/* RIR */}
@@ -168,6 +170,7 @@ const SetEntry = ({ setNumber, previousSet, onSave, onDelete, initialData, exerc
           placeholder="0-10"
           disabled={isSaved}
           error={errors.rir}
+          className="font-mono"
         />
       </div>
 

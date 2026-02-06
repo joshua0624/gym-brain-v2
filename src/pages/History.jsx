@@ -470,12 +470,12 @@ const WorkoutDetailsModal = ({ workout, onClose }) => {
                     </div>
                     <div className="flex items-center gap-3 text-text font-medium">
                       {set.weight && (
-                        <span>{set.weight} lbs</span>
+                        <span className="font-mono">{set.weight} lbs</span>
                       )}
                       <span className="text-text-light">×</span>
-                      <span>{set.reps} reps</span>
+                      <span className="font-mono">{set.reps} reps</span>
                       {set.rir !== null && set.rir !== undefined && (
-                        <span className="text-text-muted">@ RIR {set.rir}</span>
+                        <span className="text-text-muted">@ RIR <span className="font-mono">{set.rir}</span></span>
                       )}
                     </div>
                   </div>

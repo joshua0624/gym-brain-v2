@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import { userAPI } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { formatDate } from '../lib/formatters';
@@ -15,6 +16,7 @@ import { UserIcon, LogoutIcon } from '../icons';
 
 const Profile = () => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const { success, error: showError } = useToast();
 
@@ -134,7 +136,13 @@ const Profile = () => {
                   <div className="font-medium text-text text-sm">Theme</div>
                   <div className="text-xs text-text-muted">App appearance</div>
                 </div>
-                <div className="text-text-muted text-sm">Light Mode</div>
+                <button
+                  onClick={toggleTheme}
+                  className="px-3 py-1.5 rounded-lg border border-border hover:border-accent hover:bg-accent-light transition-colors text-sm font-medium text-text"
+                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                  {theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+                </button>
               </div>
               <div className="flex items-center justify-between py-3">
                 <div>

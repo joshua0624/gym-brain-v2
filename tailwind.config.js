@@ -28,9 +28,10 @@ export default {
         error: 'var(--error)',
       },
       fontFamily: {
-        display: ['Libre Baskerville', 'Georgia', 'serif'],
-        body: ['Source Sans 3', 'system-ui', 'sans-serif'],
-        sans: ['Source Sans 3', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
       },
       boxShadow: {
         'sm': '0 1px 2px rgba(0, 0, 0, 0.04)',

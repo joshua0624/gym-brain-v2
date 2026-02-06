@@ -160,7 +160,7 @@ const AIChatPanel = ({ workoutContext, onClose }) => {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 && !showDisclaimer && (
           <div className="text-center text-text-muted mt-8">
             <p className="font-medium mb-3">Ask me about:</p>
@@ -173,34 +173,37 @@ const AIChatPanel = ({ workoutContext, onClose }) => {
           </div>
         )}
 
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+        {/* Live region for chat messages */}
+        <div role="log" aria-live="polite" aria-relevant="additions" className="space-y-4">
+          {messages.map((msg, index) => (
             <div
-              className={`max-w-[80%] rounded-xl p-3 ${
-                msg.role === 'user'
-                  ? 'bg-accent text-white'
-                  : msg.isError
-                  ? 'bg-error/10 border border-error text-error'
-                  : 'bg-bg-alt text-text border border-border-light'
-              }`}
+              key={index}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-            </div>
-          </div>
-        ))}
-
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-bg-alt border border-border-light rounded-xl p-3">
-              <div className="flex items-center gap-2 text-text-muted">
-                <div className="animate-pulse">Thinking...</div>
+              <div
+                className={`max-w-[80%] rounded-xl p-3 ${
+                  msg.role === 'user'
+                    ? 'bg-accent text-white'
+                    : msg.isError
+                    ? 'bg-error/10 border border-error text-error'
+                    : 'bg-bg-alt text-text border border-border-light'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               </div>
             </div>
-          </div>
-        )}
+          ))}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-bg-alt border border-border-light rounded-xl p-3">
+                <div className="flex items-center gap-2 text-text-muted">
+                  <div className="animate-pulse">Thinking...</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div ref={messagesEndRef} />
       </div>
