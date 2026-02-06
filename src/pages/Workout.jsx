@@ -59,7 +59,7 @@ const Workout = () => {
   const [loading, setLoading] = useState(false);
 
   // Modal states
-  const [showStartModal, setShowStartModal] = useState(true);
+  const [showStartModal, setShowStartModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [showAIChatPanel, setShowAIChatPanel] = useState(false);
 

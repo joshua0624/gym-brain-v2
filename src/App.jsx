@@ -10,6 +10,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { OfflineBanner } from './components/OfflineBanner';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
+import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 const Login = lazy(() => import('./pages/Login'));
@@ -21,6 +22,8 @@ const Library = lazy(() => import('./pages/Library'));
 const Profile = lazy(() => import('./pages/Profile'));
 
 function App() {
+  useTheme();
+
   return (
     <Router>
       <ToastProvider>

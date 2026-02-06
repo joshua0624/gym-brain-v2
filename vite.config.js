@@ -77,9 +77,9 @@ export default defineConfig({
             },
           },
           {
-            // Exercise library - CacheFirst (large reference data, changes infrequently)
+            // Exercise library - StaleWhileRevalidate (serves cache, refreshes in background)
             urlPattern: /^https?:\/\/.*\/api\/exercises$/,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-exercises',
               expiration: {
