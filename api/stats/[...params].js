@@ -93,7 +93,8 @@ const handlers = {
  * Main handler - routes requests based on slug and method
  */
 export default async function handler(req, res) {
-  const slug = req.query.params || [];
+  // Parse path segments from URL (req.query may not populate for POST in Vercel)
+  const slug = req.url.split('?')[0].replace(/^\/api\/stats\/?/, '').split('/').filter(Boolean);
   const { method } = req;
 
   // Build route key from slug

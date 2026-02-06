@@ -193,7 +193,8 @@ const handlers = {
  * Main handler - routes requests based on action and method
  */
 export default async function handler(req, res) {
-  const action = req.query.action || [];
+  // Parse path segments from URL (req.query may not populate for POST in Vercel)
+  const segments = req.url.split('?')[0].replace(/^\/api\/auth\/?/, '').split('/').filter(Boolean);
   const { method } = req;
 
   // Only POST requests are allowed for auth routes
@@ -201,12 +202,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Build route key from action
+  // Build route key from path segments
   let routeKey;
 
-  if (action.length === 1) {
+  if (segments.length === 1) {
     // Single action: /api/auth/login, /api/auth/register, etc.
-    routeKey = action[0];
+    routeKey = segments[0];
   } else {
     return res.status(404).json({ error: 'Not found' });
   }
