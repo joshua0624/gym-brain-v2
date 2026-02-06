@@ -21,7 +21,14 @@ export function calculateEstimated1RM(weight, reps) {
     return null;
   }
 
-  const estimated = weight / (1.0278 - 0.0278 * reps);
+  // Guard against division by zero/negative denominator
+  // Brzycki denominator = 0 at ~37 reps, negative beyond that
+  const denominator = 1.0278 - 0.0278 * reps;
+  if (denominator <= 0) {
+    return null;
+  }
+
+  const estimated = weight / denominator;
   return Math.round(estimated * 100) / 100; // Round to 2 decimal places
 }
 
@@ -56,7 +63,7 @@ export function calculateEstimated1RMSQL() {
 export const REP_RANGES = [
   { name: '1RM', min: 1, max: 1 },
   { name: '3RM', min: 2, max: 3 },
-  { name: '5RM', min: 4, max: 6 },
+  { name: '5RM', min: 4, max: 7 },
   { name: '10RM', min: 8, max: 12 }
 ];
 

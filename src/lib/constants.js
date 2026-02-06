@@ -51,8 +51,8 @@ export const EXERCISE_TYPES = [
  */
 export const REP_RANGES = [
   { value: '1RM', label: '1RM', min: 1, max: 1 },
-  { value: '3RM', label: '3RM', min: 2, max: 4 },
-  { value: '5RM', label: '5RM', min: 4, max: 6 },
+  { value: '3RM', label: '3RM', min: 2, max: 3 },
+  { value: '5RM', label: '5RM', min: 4, max: 7 },
   { value: '10RM', label: '10RM', min: 8, max: 12 },
 ];
 

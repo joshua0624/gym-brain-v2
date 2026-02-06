@@ -11,7 +11,9 @@
       "Bash(taskkill:*)",
       "Bash(node scripts/test-progress-endpoints.js:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "mcp__gemini__query_gemini"
     ]
   }
 }

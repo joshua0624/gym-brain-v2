@@ -12,12 +12,14 @@ import { useToast } from '../hooks/useToast';
 import { formatDate } from '../lib/formatters';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 import { UserIcon, LogoutIcon } from '../icons';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const { success, error: showError } = useToast();
 
   const handleExportData = async () => {
@@ -157,6 +159,17 @@ const Profile = () => {
             </p>
           </Card>
 
+          {/* Install App */}
+          <Card>
+            <h2 className="text-lg font-display font-semibold text-text mb-3">Install App</h2>
+            <p className="text-text-muted text-sm mb-4 leading-relaxed">
+              Add GymBrAIn to your home screen for quick access, offline support, and a native app experience.
+            </p>
+            <Button variant="secondary" onClick={() => setShowInstallModal(true)}>
+              How to Install
+            </Button>
+          </Card>
+
           {/* Danger Zone */}
           <Card className="border-2 border-error/30">
             <h2 className="text-lg font-display font-semibold text-error mb-5">Danger Zone</h2>
@@ -210,6 +223,40 @@ const Profile = () => {
           </Card>
         </div>
       </div>
+
+      <Modal isOpen={showInstallModal} onClose={() => setShowInstallModal(false)} title="Install GymBrAIn" size="md">
+        <div className="space-y-5">
+          <div>
+            <h3 className="font-semibold text-text text-sm mb-2">iPhone / iPad (Safari)</h3>
+            <ol className="text-sm text-text-muted space-y-1.5 list-decimal list-inside">
+              <li>Tap the <span className="font-medium text-text">Share</span> button (square with arrow)</li>
+              <li>Scroll down and tap <span className="font-medium text-text">Add to Home Screen</span></li>
+              <li>Tap <span className="font-medium text-text">Add</span> in the top right</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-text text-sm mb-2">Android (Chrome)</h3>
+            <ol className="text-sm text-text-muted space-y-1.5 list-decimal list-inside">
+              <li>Tap the <span className="font-medium text-text">three-dot menu</span> in the top right</li>
+              <li>Tap <span className="font-medium text-text">Add to Home screen</span> or <span className="font-medium text-text">Install app</span></li>
+              <li>Tap <span className="font-medium text-text">Install</span> to confirm</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-text text-sm mb-2">Desktop (Chrome / Edge)</h3>
+            <ol className="text-sm text-text-muted space-y-1.5 list-decimal list-inside">
+              <li>Click the <span className="font-medium text-text">install icon</span> in the address bar (or three-dot menu)</li>
+              <li>Click <span className="font-medium text-text">Install</span></li>
+            </ol>
+          </div>
+
+          <p className="text-xs text-text-light pt-2 border-t border-border-light">
+            Once installed, GymBrAIn works offline and launches like a native app.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 };

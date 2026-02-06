@@ -4,6 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./src/test/setup.js'],
+    include: ['src/**/*.test.{js,jsx}', 'api/**/*.test.js'],
+    coverage: {
+      reporter: ['text', 'html'],
+      include: ['src/lib/**', 'src/hooks/**', 'src/contexts/**', 'api/_lib/**'],
+    },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -132,6 +142,16 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-charts': ['recharts'],
+        },
+      },
+    },
+  },
   server: {
     // Use default Vite port (5173) to avoid conflict with Vercel dev (port 3000)
     port: 5173,

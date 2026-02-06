@@ -4,25 +4,28 @@
  * Sets up routing, authentication, and toast notifications
  */
 
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './contexts/ToastContext';
 import { OfflineBanner } from './components/OfflineBanner';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Workout from './pages/Workout';
-import History from './pages/History';
-import Progress from './pages/Progress';
-import Library from './pages/Library';
-import Profile from './pages/Profile';
 import './App.css';
+
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Workout = lazy(() => import('./pages/Workout'));
+const History = lazy(() => import('./pages/History'));
+const Progress = lazy(() => import('./pages/Progress'));
+const Library = lazy(() => import('./pages/Library'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 function App() {
   return (
     <Router>
       <ToastProvider>
         <OfflineBanner />
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-pulse text-text-secondary">Loading...</div></div>}>
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
@@ -96,6 +99,7 @@ function App() {
           }
         />
       </Routes>
+        </Suspense>
       </ToastProvider>
     </Router>
   );
