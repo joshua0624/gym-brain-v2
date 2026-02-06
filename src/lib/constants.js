@@ -146,7 +146,7 @@ export const CHART_COLORS = {
   secondary: '#8b7355',  // Secondary (brown)
   weight: '#5a7c40',     // Success (darker green)
   volume: '#6b7c3f',     // Accent (olive green)
-  estimated1RM: '#a65d57', // Error (muted red)
+  estimated1RM: '#5a7c40', // Success (darker green) - matches weight
   reps: '#b8860b',       // Warning (gold)
 };
 
