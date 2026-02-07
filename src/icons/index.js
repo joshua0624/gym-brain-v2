@@ -1,4 +1,5 @@
 // Navigation Icons
+export { default as HomeIcon } from './HomeIcon.jsx';
 export { default as DumbbellIcon } from './DumbbellIcon.jsx';
 export { default as HistoryIcon } from './HistoryIcon.jsx';
 export { default as TrendingUpIcon } from './TrendingUpIcon.jsx';

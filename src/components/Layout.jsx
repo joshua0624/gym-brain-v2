@@ -9,10 +9,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import {
+  HomeIcon,
   DumbbellIcon,
   HistoryIcon,
   TrendingUpIcon,
-  BookIcon,
   UserIcon,
   WifiIcon,
   WifiOffIcon,
@@ -23,10 +23,10 @@ const Layout = ({ children }) => {
   const { isOnline, isOffline } = useNetworkStatus();
 
   const navItems = [
-    { path: '/workout', label: 'Workout', Icon: DumbbellIcon },
+    { path: '/home', label: 'Home', Icon: HomeIcon },
+    { path: '/plan', label: 'Plan', Icon: DumbbellIcon },
     { path: '/history', label: 'History', Icon: HistoryIcon },
     { path: '/progress', label: 'Progress', Icon: TrendingUpIcon },
-    { path: '/library', label: 'Library', Icon: BookIcon },
     { path: '/profile', label: 'Profile', Icon: UserIcon },
   ];
 
@@ -46,7 +46,7 @@ const Layout = ({ children }) => {
       <nav className="hidden lg:flex flex-col w-60 h-screen bg-surface border-r border-border-light p-6 sticky top-0 shrink-0" aria-label="Main navigation">
         {/* Logo */}
         <div className="mb-8">
-          <Link to="/workout" className="text-2xl font-bold">
+          <Link to="/home" className="text-2xl font-bold">
             <span className="text-accent font-display">Gym</span>
             <span className="text-text">BrAI</span>
             <span className="text-text">n</span>
@@ -103,7 +103,7 @@ const Layout = ({ children }) => {
         {/* Mobile Header - Hidden on Desktop */}
         <header className="lg:hidden bg-surface border-b border-border-light sticky top-0 z-40">
           <div className="px-4 h-14 flex items-center justify-between">
-            <Link to="/workout" className="text-xl font-bold">
+            <Link to="/home" className="text-xl font-bold">
               <span className="text-accent font-display">Gym</span>
               <span className="text-text">BrAI</span>
               <span className="text-text">n</span>

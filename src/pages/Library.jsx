@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { exerciseAPI } from '../lib/api';
+import { exerciseAPI, templateAPI } from '../lib/api';
 import { formatMuscleGroups, formatEquipment, formatExerciseType } from '../lib/formatters';
 import { MUSCLE_GROUPS, EQUIPMENT_TYPES, EXERCISE_TYPES } from '../lib/constants';
 import { useToast } from '../hooks/useToast';
@@ -16,12 +16,14 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import SearchInput from '../components/ui/SearchInput';
 import Modal from '../components/ui/Modal';
+import Input from '../components/ui/Input';
 import EmptyState from '../components/ui/EmptyState';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 // Icons
 import PlusIcon from '../icons/PlusIcon';
 import TrashIcon from '../icons/TrashIcon';
+import EditIcon from '../icons/EditIcon';
 import FilterIcon from '../icons/FilterIcon';
 import XIcon from '../icons/XIcon';
 import BookIcon from '../icons/BookIcon';
@@ -29,17 +31,26 @@ import BookIcon from '../icons/BookIcon';
 const Library = () => {
   const [exercises, setExercises] = useState([]);
   const [filteredExercises, setFilteredExercises] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [editTemplateName, setEditTemplateName] = useState('');
+  const [editTemplateDesc, setEditTemplateDesc] = useState('');
+  const [saving, setSaving] = useState(false);
   const { success, error: showError } = useToast();
 
-  // Load exercises on mount
+  // Load exercises and templates on mount
   useEffect(() => {
     loadExercises();
+    loadTemplates();
   }, []);
 
   // Filter exercises when filters change
@@ -57,6 +68,19 @@ const Library = () => {
       showError('Failed to load exercise library');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTemplates = async () => {
+    setTemplatesLoading(true);
+    try {
+      const data = await templateAPI.getAll();
+      setTemplates(data.templates || []);
+    } catch (err) {
+      console.error('Failed to load templates:', err);
+      showError('Failed to load templates');
+    } finally {
+      setTemplatesLoading(false);
     }
   };
 
@@ -118,6 +142,55 @@ const Library = () => {
     }
   };
 
+  const handleEditTemplate = (template) => {
+    setSelectedTemplate(template);
+    setEditTemplateName(template.name);
+    setEditTemplateDesc(template.description || '');
+    setShowEditModal(true);
+  };
+
+  const handleDeleteTemplate = (template) => {
+    setSelectedTemplate(template);
+    setShowDeleteModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTemplateName.trim()) {
+      showError('Template name is required');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await templateAPI.update(selectedTemplate.id, {
+        name: editTemplateName.trim(),
+        description: editTemplateDesc.trim() || null,
+      });
+      success('Template updated');
+      setShowEditModal(false);
+      setSelectedTemplate(null);
+      loadTemplates();
+    } catch (err) {
+      console.error('Failed to update template:', err);
+      showError('Failed to update template');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await templateAPI.delete(selectedTemplate.id);
+      success('Template deleted');
+      setShowDeleteModal(false);
+      setSelectedTemplate(null);
+      loadTemplates();
+    } catch (err) {
+      console.error('Failed to delete template:', err);
+      showError('Failed to delete template');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-bg">
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
@@ -135,6 +208,77 @@ const Library = () => {
             <span className="hidden sm:inline">Create Exercise</span>
           </Button>
         </div>
+
+        {/* My Templates Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-display font-semibold text-text mb-4">
+            My Templates
+          </h2>
+
+          {templatesLoading ? (
+            <Card>
+              <LoadingSpinner size="sm" text="Loading templates..." />
+            </Card>
+          ) : templates.length === 0 ? (
+            <Card>
+              <EmptyState
+                icon={<BookIcon size={40} />}
+                title="No templates yet"
+                description="Create a template from the Workout page to save your favorite routines"
+              />
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {templates.map((template, index) => (
+                <Card
+                  key={template.id}
+                  variant="elevated"
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-text font-display pr-2">
+                      {template.name}
+                    </h3>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTemplate(template)}
+                        className="p-1.5 hover:bg-accent-light hover:text-accent"
+                        aria-label="Edit template"
+                      >
+                        <EditIcon size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTemplate(template)}
+                        className="p-1.5 hover:bg-error/10 hover:text-error"
+                        aria-label="Delete template"
+                      >
+                        <TrashIcon size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                  {template.description && (
+                    <p className="text-sm text-text-muted mb-2 line-clamp-2">
+                      {template.description}
+                    </p>
+                  )}
+                  <p className="text-xs text-text-light">
+                    {template.exerciseCount || 0} exercise{template.exerciseCount !== 1 ? 's' : ''}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Exercises Section Header */}
+        <h2 className="text-xl font-display font-semibold text-text mb-4">
+          Exercises
+        </h2>
 
         {/* Filters */}
         <Card variant="standard" padding="md" className="mb-6">
@@ -261,6 +405,113 @@ const Library = () => {
             ))}
           </div>
         )}
+
+        {/* Edit Template Modal */}
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTemplate(null);
+          }}
+          title="Edit Template"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="templateName" className="block text-sm font-medium text-text mb-2">
+                Template Name
+              </label>
+              <Input
+                id="templateName"
+                type="text"
+                placeholder="e.g., Push Day"
+                value={editTemplateName}
+                onChange={(e) => setEditTemplateName(e.target.value)}
+                disabled={saving}
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label htmlFor="templateDesc" className="block text-sm font-medium text-text mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                id="templateDesc"
+                placeholder="Add notes about this template..."
+                value={editTemplateDesc}
+                onChange={(e) => setEditTemplateDesc(e.target.value)}
+                disabled={saving}
+                rows={3}
+                className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-[14px] text-text placeholder:text-text-light focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all duration-200 resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedTemplate(null);
+                }}
+                disabled={saving}
+                fullWidth
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveEdit}
+                disabled={!editTemplateName.trim() || saving}
+                loading={saving}
+                fullWidth
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Delete Template Modal */}
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedTemplate(null);
+          }}
+          title="Delete Template"
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-text">
+              Are you sure you want to delete "{selectedTemplate?.name}"?
+            </p>
+            <p className="text-sm text-text-muted">
+              This action cannot be undone. The template and its exercises will be permanently removed.
+            </p>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedTemplate(null);
+                }}
+                fullWidth
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleConfirmDelete}
+                className="bg-error hover:bg-error-hover border-error"
+                fullWidth
+              >
+                Delete Template
+              </Button>
+            </div>
+          </div>
+        </Modal>
 
         {/* Create exercise modal */}
         {showCreateModal && (

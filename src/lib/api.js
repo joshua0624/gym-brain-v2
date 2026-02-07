@@ -634,6 +634,18 @@ export const userAPI = {
     const response = await apiClient.get('/user/export');
     return response.data;
   },
+
+  /**
+   * Delete user account permanently
+   * @param {string} password - Password confirmation
+   * @returns {Promise<{success: boolean, message: string}>}
+   */
+  deleteAccount: async (password) => {
+    const response = await apiClient.delete('/user/delete', {
+      data: { password }
+    });
+    return response.data;
+  },
 };
 
 /**

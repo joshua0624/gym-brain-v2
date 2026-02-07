@@ -3,10 +3,12 @@
  *
  * Routes:
  * - GET /api/user/export => Export all user data
+ * - DELETE /api/user/delete => Delete user account permanently
  */
 
 import { requireAuth } from '../_lib/middleware/auth.js';
 import { sql } from '../_lib/db.js';
+import { deleteAccount } from '../_lib/services/userService.js';
 
 /**
  * Export all user data (workouts, templates, custom exercises)
@@ -170,12 +172,59 @@ async function handleExport(req, res) {
 }
 
 /**
+ * Delete user account permanently
+ *
+ * @param {Object} req - Request object with authenticated user and password in body
+ * @param {Object} res - Response object
+ * @returns {Promise<void>}
+ */
+async function handleDelete(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { password } = req.body;
+
+    // Validate password provided
+    if (!password) {
+      return res.status(400).json({ error: 'Password required' });
+    }
+
+    // Delete account with password verification
+    await deleteAccount(userId, password);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+
+    // Handle specific errors
+    if (error.message === 'Invalid password') {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    if (error.message === 'User not found') {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(500).json({
+      error: 'Failed to delete account',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+}
+
+/**
  * Route handlers
  */
 const handlers = {
   GET: {
     // GET /api/user/export - Export all user data
     'export': handleExport
+  },
+  DELETE: {
+    // DELETE /api/user/delete - Delete user account
+    'delete': handleDelete
   }
 };
 
@@ -190,8 +239,8 @@ export default async function handler(req, res) {
   // Build route key from slug
   let routeKey;
 
-  if (slug.length === 1 && slug[0] === 'export') {
-    routeKey = 'export';
+  if (slug.length === 1 && (slug[0] === 'export' || slug[0] === 'delete')) {
+    routeKey = slug[0];
   } else {
     return res.status(404).json({ error: 'Not found' });
   }

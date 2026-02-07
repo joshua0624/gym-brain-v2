@@ -15,6 +15,10 @@ import './App.css';
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Home = lazy(() => import('./pages/Home'));
+const Plan = lazy(() => import('./pages/Plan'));
 const Workout = lazy(() => import('./pages/Workout'));
 const History = lazy(() => import('./pages/History'));
 const Progress = lazy(() => import('./pages/Progress'));
@@ -33,8 +37,30 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Protected routes */}
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Home />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Plan />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/workout"
           element={
@@ -87,7 +113,7 @@ function App() {
         />
 
         {/* Default route */}
-        <Route path="/" element={<Navigate to="/workout" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
 
         {/* 404 catch-all */}
         <Route

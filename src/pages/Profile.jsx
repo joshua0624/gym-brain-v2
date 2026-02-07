@@ -13,13 +13,17 @@ import { formatDate } from '../lib/formatters';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { UserIcon, LogoutIcon } from '../icons';
+import Input from '../components/ui/Input';
+import { UserIcon, LogoutIcon, TrashIcon } from '../icons';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const { success, error: showError } = useToast();
 
   const handleExportData = async () => {
@@ -50,6 +54,25 @@ const Profile = () => {
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       logout();
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await userAPI.deleteAccount(deletePassword);
+
+      // Success - logout and redirect
+      success('Account deleted successfully');
+      setTimeout(() => {
+        logout(); // This will redirect to /login
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to delete account:', err);
+      showError(err.response?.data?.error || 'Failed to delete account');
+      setDeletePassword(''); // Clear password on error
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -192,14 +215,15 @@ const Profile = () => {
               <div className="pt-5 border-t border-border-light">
                 <h3 className="font-medium text-text mb-2 text-sm">Delete Account</h3>
                 <p className="text-xs text-text-muted mb-3 leading-relaxed">
-                  Permanently delete your account and all data (coming soon)
+                  Permanently delete your account and all associated data
                 </p>
                 <Button
-                  disabled
+                  onClick={() => setShowDeleteModal(true)}
                   variant="ghost"
-                  className="opacity-50 cursor-not-allowed"
+                  className="text-error hover:bg-error/10"
                 >
-                  Delete Account (Not Available)
+                  <TrashIcon size={16} />
+                  Delete Account
                 </Button>
               </div>
             </div>
@@ -217,13 +241,82 @@ const Profile = () => {
             <div className="mt-5 pt-5 border-t border-border-light">
               <p className="text-xs text-text-light">
                 GymBrAIn v1.0.0 • Built with React + Vercel
-                <br />© 2026 Joshua Ricks • Portfolio Project
+                <br />© 2026 Joshua Stratton • Portfolio Project
               </p>
             </div>
           </Card>
         </div>
       </div>
 
+      {/* Delete Account Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletePassword('');
+        }}
+        title="Delete Account"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="p-4 bg-error/10 border border-error/30 rounded-lg">
+            <p className="text-error font-semibold mb-2">⚠️ Warning: This action cannot be undone</p>
+            <p className="text-sm text-text">
+              Deleting your account will permanently remove:
+            </p>
+            <ul className="list-disc list-inside text-sm text-text-muted mt-2 space-y-1 ml-2">
+              <li>All workout history and progress data</li>
+              <li>All templates and saved workouts</li>
+              <li>All personal records (PRs)</li>
+              <li>All drafts and notes</li>
+            </ul>
+            <p className="text-xs text-text-muted mt-3 italic">
+              Note: Custom exercises you created will be preserved in the library for other users
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="deletePassword" className="block text-sm font-medium text-text mb-2">
+              Enter your password to confirm
+            </label>
+            <Input
+              id="deletePassword"
+              type="password"
+              placeholder="Your password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              disabled={deleting}
+              autoFocus
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeletePassword('');
+              }}
+              disabled={deleting}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteAccount}
+              disabled={!deletePassword || deleting}
+              loading={deleting}
+              className="bg-error hover:bg-error-hover border-error"
+              fullWidth
+            >
+              {deleting ? 'Deleting...' : 'Delete My Account'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Install Modal */}
       <Modal isOpen={showInstallModal} onClose={() => setShowInstallModal(false)} title="Install GymBrAIn" size="md">
         <div className="space-y-5">
           <div>
