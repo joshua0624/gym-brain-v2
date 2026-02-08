@@ -13,7 +13,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { workoutAPI, exerciseAPI, templateAPI } from '../lib/api';
 import { useToastContext } from '../contexts/ToastContext';
 import { useDraftAutoSave } from '../hooks/useDraftAutoSave';
@@ -48,6 +48,7 @@ import {
 
 const Workout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { success, error: showError, warning } = useToastContext();
   const { isOnline } = useNetworkStatus();
 
@@ -88,6 +89,27 @@ const Workout = () => {
 
     loadData();
   }, [showError]);
+
+  /**
+   * Check for navigation state to auto-start workout
+   */
+  useEffect(() => {
+    if (location.state?.action && !workout) {
+      const { action, templateId } = location.state;
+
+      // Clear the state to prevent re-triggering on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+
+      // Perform the requested action
+      if (action === 'blank') {
+        startBlankWorkout();
+      } else if (action === 'template' && templateId) {
+        startFromTemplate(templateId);
+      } else if (action === 'resume') {
+        resumeDraft();
+      }
+    }
+  }, [location, workout, navigate]);
 
   /**
    * Start a blank workout

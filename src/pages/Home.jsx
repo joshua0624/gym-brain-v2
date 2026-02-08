@@ -6,11 +6,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { progressAPI } from '../lib/api';
+import { progressAPI, templateAPI } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 import ProgressBar from '../components/ui/ProgressBar';
 import EmptyState from '../components/ui/EmptyState';
 import Skeleton from '../components/ui/Skeleton';
@@ -21,7 +22,10 @@ const Home = () => {
   const navigate = useNavigate();
   const { error: showError } = useToast();
   const [weeklyStats, setWeeklyStats] = useState(null);
+  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -30,8 +34,12 @@ const Home = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const data = await progressAPI.getWeeklyStats();
-      setWeeklyStats(data.stats || null);
+      const [statsData, templatesData] = await Promise.all([
+        progressAPI.getWeeklyStats(),
+        templateAPI.getAll()
+      ]);
+      setWeeklyStats(statsData.stats || null);
+      setTemplates(templatesData.templates || []);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
       showError('Failed to load dashboard data');
@@ -48,7 +56,21 @@ const Home = () => {
   };
 
   const handleNewWorkout = () => {
-    navigate('/workout');
+    setShowStartModal(true);
+  };
+
+  const handleStartBlank = () => {
+    navigate('/workout', { state: { action: 'blank' } });
+  };
+
+  const handleStartFromTemplate = () => {
+    if (selectedTemplate) {
+      navigate('/workout', { state: { action: 'template', templateId: selectedTemplate } });
+    }
+  };
+
+  const handleResumeDraft = () => {
+    navigate('/workout', { state: { action: 'resume' } });
   };
 
   // Sample data for Today's Plan (as requested)
@@ -205,6 +227,65 @@ const Home = () => {
               description="Start a workout to see your progress"
             />
           </Card>
+        )}
+
+        {/* Start Workout Modal */}
+        {showStartModal && (
+          <Modal isOpen={true} onClose={() => setShowStartModal(false)} title="Start Workout">
+            <div className="space-y-3">
+              <button
+                onClick={handleStartBlank}
+                className="w-full py-4 px-5 bg-accent hover:bg-accent-hover rounded-xl text-left transition-all duration-200 active:scale-[0.98] text-surface"
+              >
+                <div className="font-semibold text-base">Start Blank Workout</div>
+                <div className="text-sm opacity-90 mt-0.5">Add exercises as you go</div>
+              </button>
+
+              <button
+                onClick={handleResumeDraft}
+                className="w-full py-4 px-5 bg-accent-light hover:bg-accent/20 rounded-xl text-left transition-all duration-200 active:scale-[0.98] text-text"
+              >
+                <div className="font-semibold text-base">Resume Draft</div>
+                <div className="text-sm text-text-muted mt-0.5">Continue your last workout</div>
+              </button>
+
+              {templates.length > 0 && (
+                <div className="border-t border-border pt-4 mt-4">
+                  <p className="text-sm text-text-muted mb-3 font-medium">Or start from template:</p>
+                  <select
+                    value={selectedTemplate || ''}
+                    onChange={(e) => setSelectedTemplate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg mb-3 text-text focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="">Select a template...</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    onClick={handleStartFromTemplate}
+                    disabled={!selectedTemplate}
+                    fullWidth
+                    variant="secondary"
+                  >
+                    Start from Template
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Button
+                onClick={() => setShowStartModal(false)}
+                variant="ghost"
+                fullWidth
+              >
+                Cancel
+              </Button>
+            </div>
+          </Modal>
         )}
       </div>
     </div>
